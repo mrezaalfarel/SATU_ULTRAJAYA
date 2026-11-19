@@ -1,0 +1,13 @@
+{
+  "name": "satu-ultrajaya-pilot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/pilot.mjs && node tests/print.mjs && node tests/live.mjs",
+    "test:size": "node tests/size.mjs",
+    "test:browser": "node tests/browser.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.4.1"
+  }
+}
