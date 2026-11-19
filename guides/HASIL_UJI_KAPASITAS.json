@@ -1,0 +1,26 @@
+{
+  "reports": 5000,
+  "recordedValues": 1000000,
+  "sampleSizeBytes": 18292736,
+  "elapsedMs": 3161,
+  "traceQueryPlan": [
+    "Limit  (cost=324.46..324.52 rows=25 width=20) (actual time=1.796..1.805 rows=1 loops=1)",
+    "  Buffers: shared hit=56",
+    "  ->  Sort  (cost=324.46..324.52 rows=25 width=20) (actual time=1.788..1.793 rows=1 loops=1)",
+    "        Sort Key: day DESC, id DESC",
+    "        Sort Method: quicksort  Memory: 17kB",
+    "        Buffers: shared hit=56",
+    "        ->  Bitmap Heap Scan on reports  (cost=233.92..323.87 rows=25 width=20) (actual time=1.756..1.766 rows=1 loops=1)",
+    "              Recheck Cond: (terms @> '{l-4001}'::text[])",
+    "              Filter: ((status <> 'ARCHIVED'::text) AND (day >= '2026-01-01'::date) AND (day <= '2026-12-31'::date) AND (line = 'Sintetis'::text))",
+    "              Heap Blocks: exact=1",
+    "              Buffers: shared hit=56",
+    "              ->  Bitmap Index Scan on rpt_terms  (cost=0.00..233.91 rows=25 width=0) (actual time=1.710..1.711 rows=1 loops=1)",
+    "                    Index Cond: (terms @> '{l-4001}'::text[])",
+    "                    Buffers: shared hit=55",
+    "Planning:",
+    "  Buffers: shared hit=54",
+    "Planning Time: 0.809 ms",
+    "Execution Time: 1.968 ms"
+  ]
+}

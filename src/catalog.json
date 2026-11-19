@@ -1,0 +1,5775 @@
+[
+  {
+    "id": "PROCESS_MILK",
+    "title": "Laporan Produksi Milk",
+    "area": "Proses",
+    "formNo": "F.U.P.002",
+    "rev": "09",
+    "effective": "Jul-25",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Line Pasteurizer",
+        "type": "select",
+        "required": true,
+        "options": [
+          "",
+          "1",
+          "2",
+          "10",
+          "11"
+        ]
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Nomor batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Nomor lot",
+        "type": "text"
+      },
+      {
+        "key": "pasteurizer_line",
+        "label": "Line Pasteurizer",
+        "type": "text"
+      },
+      {
+        "key": "operator_general",
+        "label": "Nama Operator",
+        "type": "text"
+      },
+      {
+        "key": "supervisor_general",
+        "label": "Nama Pengawas",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "cook_ident",
+        "title": "Identitas Produksi per Masakan",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "cook_product",
+            "label": "Produk",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "cook_batch",
+            "label": "Nomor batch",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "cook_lot",
+            "label": "Nomor lot",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "cook_st",
+            "label": "No. ST / SILO",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "cook_operator",
+            "label": "Nama operator",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "cook_supervisor",
+            "label": "Nama pengawas",
+            "type": "text",
+            "required": false
+          }
+        ]
+      },
+      {
+        "id": "checks_dump",
+        "title": "Persiapan Area Dumping",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "corong_dumping_bersih",
+            "label": "Corong dumping bersih",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "dust_collector_bersih",
+            "label": "Dust collector bersih",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "alat_bantu_bersih",
+            "label": "Alat bantu (pisau, sikat, stick) bersih",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          }
+        ],
+        "desc": "Hasil pemeriksaan per mixing 1–4"
+      },
+      {
+        "id": "checks_process",
+        "title": "Persiapan Area Proses",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "in_filter_bersih_dan_tidak_rusak_oprp",
+            "label": "In-filter bersih dan tidak rusak (OPRP)",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "pressure_steam",
+            "label": "Pressure steam",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "suhu_ice_water_in",
+            "label": "Suhu ice water IN",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "pressure_water",
+            "label": "Pressure water",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "level_homo_oil_min_50",
+            "label": "Level Homo Oil (min 50%)",
+            "type": "number",
+            "unit": "%"
+          },
+          {
+            "key": "pressure_homo_oil",
+            "label": "Pressure Homo Oil",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "tidak_ada_jalur_pipa_bocor",
+            "label": "Tidak ada jalur pipa bocor",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "area_dan_peralatan_bersih",
+            "label": "Area dan peralatan bersih",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "filter_air_bersih_dan_tidak_rusak",
+            "label": "Filter air bersih dan tidak rusak",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          }
+        ],
+        "desc": "Pengukuran / pemeriksaan pada mixing 1–4"
+      },
+      {
+        "id": "checks_material",
+        "title": "Cek Material",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "jenis_dan_quantity_sesuai_formula",
+            "label": "Jenis dan quantity sesuai formula",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "material_sudah_release_qc",
+            "label": "Material sudah release QC",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "material_bersih_dan_tidak_rusak",
+            "label": "Material bersih dan tidak rusak",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "material_tidak_expired",
+            "label": "Material tidak expired",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          }
+        ],
+        "desc": "Cek setiap mixing"
+      },
+      {
+        "id": "mix",
+        "title": "Parameter Mixing",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "recipe_fresh_milk_st_silo",
+            "label": "Recipe Fresh Milk ST / Silo",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "volume_air_ke_mt_tahap_1",
+            "label": "Volume Air ke MT - Tahap 1",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "suhu_air_di_mt_saat_dumping_stabilizer",
+            "label": "Suhu Air di MT saat dumping Stabilizer",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "sirkulasi_stabilizer_dan_garam",
+            "label": "Sirkulasi stabilizer dan garam",
+            "type": "number",
+            "unit": "menit"
+          },
+          {
+            "key": "volume_air_ke_mt_tahap_2",
+            "label": "Volume Air ke MT - Tahap 2",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "dumping_chocolate_powder_kopi",
+            "label": "Dumping chocolate powder / kopi",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "sirkulasi_coklat",
+            "label": "Sirkulasi coklat",
+            "type": "number",
+            "unit": "menit"
+          },
+          {
+            "key": "suhu_air_di_mt_saat_dumping_smp_wmp",
+            "label": "Suhu Air di MT (saat dumping SMP/WMP)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "dumping_smp_wmp",
+            "label": "Dumping SMP & WMP",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "volume_gula_cair_ke_mt",
+            "label": "Volume gula cair ke MT",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "sirkulasi_after_mixing",
+            "label": "Sirkulasi after mixing",
+            "type": "number",
+            "unit": "menit"
+          },
+          {
+            "key": "suhu_akhir_di_mt_setelah_sirkulasi",
+            "label": "Suhu akhir di MT setelah sirkulasi",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "tambahan_reproses",
+            "label": "Tambahan Reproses",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "start_mixing",
+            "label": "Start Mixing",
+            "type": "time",
+            "unit": "jam"
+          },
+          {
+            "key": "finish_mixing",
+            "label": "Finish Mixing",
+            "type": "time",
+            "unit": "jam"
+          }
+        ],
+        "desc": "Mixing 1, 2, 3, atau 4"
+      },
+      {
+        "id": "pasteur",
+        "title": "Parameter Pasteurisasi",
+        "kind": "matrix",
+        "fields": [
+          {
+            "key": "volume_air_dorongan_awal_ke_st_35_40",
+            "label": "Volume air dorongan awal ke ST 35–40",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "suhu_inlet_product_dari_mt",
+            "label": "Suhu inlet product dari MT",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "suhu_inlet_product_ke_homogenizer_p10",
+            "label": "Suhu inlet product ke Homogenizer P10",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "pressure_homogenizer_1st_stage",
+            "label": "Pressure Homogenizer 1st stage",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "pressure_homogenizer_2nd_stage",
+            "label": "Pressure Homogenizer 2nd stage",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "suhu_pasteurisasi_oprp",
+            "label": "Suhu Pasteurisasi (OPRP)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "flow_rate_pasteurisasi",
+            "label": "Flow rate Pasteurisasi",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "suhu_outlet_produk_ke_st_silo",
+            "label": "Suhu outlet produk ke ST/SILO",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "masukkan_flavor_color_ke_bt_atau_st",
+            "label": "Masukkan Flavor / Color ke BT atau ST",
+            "type": "check",
+            "unit": "",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "flavor_destination",
+            "label": "Flavour / Color dimasukkan ke",
+            "type": "select",
+            "options": [
+              "",
+              "BT",
+              "ST"
+            ]
+          },
+          {
+            "key": "volume_air_dorongan_akhir",
+            "label": "Volume air dorongan akhir",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "start_pasteurisasi",
+            "label": "Start Pasteurisasi",
+            "type": "time",
+            "unit": "jam"
+          },
+          {
+            "key": "finish_pasteurisasi",
+            "label": "Finish Pasteurisasi",
+            "type": "time",
+            "unit": "jam"
+          }
+        ],
+        "desc": "Satu mixing memiliki pengamatan 0’, 30’, 60’, 90’. Pilih titik pengamatan.",
+        "count": 4
+      },
+      {
+        "id": "storage",
+        "title": "Storage Tank",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "agitator_st_on_setelah_level_3000_l",
+            "label": "Agitator ST ON setelah level 3000 L",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "volume_akhir_wip_di_st",
+            "label": "Volume akhir WIP di ST",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "lama_agitasi_wip_sebelum_ambil_sampel",
+            "label": "Lama agitasi WIP sebelum ambil sampel",
+            "type": "number",
+            "unit": "menit"
+          },
+          {
+            "key": "waktu_ambil_sampel_lab_qc",
+            "label": "Waktu ambil sampel Lab QC",
+            "type": "time"
+          }
+        ],
+        "desc": "1–4 mixing"
+      },
+      {
+        "id": "adjust",
+        "title": "Standarisasi / Adjustment Produk",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "tambahan_material",
+            "label": "Tambahan material",
+            "type": "text"
+          },
+          {
+            "key": "material_unit",
+            "label": "Satuan tambahan material",
+            "type": "select",
+            "options": [
+              "",
+              "kg",
+              "L"
+            ]
+          },
+          {
+            "key": "jumlah_tambahan_material",
+            "label": "Jumlah tambahan material",
+            "type": "number"
+          },
+          {
+            "key": "volume_wip_st_setelah_adjustment",
+            "label": "Volume WIP ST setelah adjustment",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "approval_produk_oleh_qc",
+            "label": "Approval produk oleh QC",
+            "type": "time"
+          }
+        ],
+        "desc": "1–4 mixing"
+      },
+      {
+        "id": "info",
+        "title": "Identitas dan Catatan",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "no_st_silo",
+            "label": "No ST / Silo",
+            "type": "text"
+          },
+          {
+            "key": "operator",
+            "label": "Operator",
+            "type": "text"
+          },
+          {
+            "key": "nama_pengawas",
+            "label": "Nama pengawas",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "textarea"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PROCESS_CIP_PAST",
+    "title": "CIP Line Pasteurizer",
+    "area": "Proses",
+    "formNo": "F.U.U.CL.06",
+    "rev": "02",
+    "effective": "Dec-22",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin / Line",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Nomor batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Nomor lot",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "cip",
+        "title": "Isian CIP Line Pasteurizer",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "pasteurizer_line",
+            "label": "Line Pasteurizer",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "produk_sebelum_cip",
+            "label": "Produk sebelum CIP",
+            "type": "text"
+          },
+          {
+            "key": "flow_produk_terakhir_sebelum_cip",
+            "label": "Flow produk terakhir sebelum CIP",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "pre_rinse",
+            "label": "Pre rinse",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "caustic_flow",
+            "label": "Caustic: flow",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "caustic_waktu",
+            "label": "Caustic: waktu",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "caustic_suhu",
+            "label": "Caustic: suhu",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "caustic_conductivity",
+            "label": "Caustic: conductivity",
+            "type": "number",
+            "unit": "mS"
+          },
+          {
+            "key": "intermediate_rinse",
+            "label": "Intermediate rinse",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "acid_flow",
+            "label": "Acid: flow",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "acid_waktu",
+            "label": "Acid: waktu",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "acid_suhu",
+            "label": "Acid: suhu",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "acid_conductivity",
+            "label": "Acid: conductivity",
+            "type": "number",
+            "unit": "mS"
+          },
+          {
+            "key": "final_rinse_waktu",
+            "label": "Final rinse: waktu",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "final_rinse_conductivity",
+            "label": "Final rinse: conductivity",
+            "type": "number",
+            "unit": "mS"
+          },
+          {
+            "key": "start_cip",
+            "label": "Start CIP",
+            "type": "time"
+          },
+          {
+            "key": "stop_cip",
+            "label": "Finish CIP",
+            "type": "time"
+          },
+          {
+            "key": "operator",
+            "label": "Operator",
+            "type": "text"
+          },
+          {
+            "key": "supervisor",
+            "label": "Supervisor",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "textarea"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "STERILIZER_GEA",
+    "title": "Produksi Sterilizer GEA",
+    "area": "Sterilizer",
+    "formNo": "F.U.F.060",
+    "rev": "05",
+    "effective": "Jul-25",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin / Line",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Nomor batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Nomor lot",
+        "type": "text"
+      },
+      {
+        "key": "stlz",
+        "label": "No STLZ",
+        "type": "select",
+        "required": true,
+        "options": [
+          "",
+          "Q",
+          "R",
+          "S",
+          "T",
+          "U",
+          "N",
+          "O",
+          "P",
+          "H",
+          "I",
+          "J",
+          "K",
+          "L"
+        ]
+      },
+      {
+        "key": "at",
+        "label": "No AT",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "12",
+          "13",
+          "14"
+        ],
+        "required": true
+      },
+      {
+        "key": "operator",
+        "label": "Nama operator shift",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Nama pengawas shift",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "hour",
+        "title": "Parameter Produksi per Jam",
+        "kind": "hourly",
+        "fields": [
+          {
+            "key": "suhu_product_inlet_t1mt01",
+            "label": "Suhu Product Inlet (T1MT01)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "flow_product_t1mf01_ccp",
+            "label": "Flow Product (T1MF01) (CCP)",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "product_pump_capacity_t1pu01",
+            "label": "Product Pump Capacity (T1PU01)",
+            "type": "number",
+            "unit": "%"
+          },
+          {
+            "key": "suhu_inlet_homo_non_aseptic_h1mt10",
+            "label": "Suhu inlet Homo non-aseptic (H1MT10)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "pressure_inlet_homo_non_aseptic_h1mp10",
+            "label": "Pressure inlet Homo non-aseptic (H1MP10)",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "pump_capacity_pre_heat_water_t4pu01",
+            "label": "Pump capacity pre-heat water (T4PU01)",
+            "type": "number",
+            "unit": "%"
+          },
+          {
+            "key": "flow_pre_heat_water_t4mf01",
+            "label": "Flow pre-heat water (T4MF01)",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "homo_non_aseptic_stage_1",
+            "label": "Homo non-aseptic Stage 1",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "homo_non_aseptic_stage_2",
+            "label": "Homo non-aseptic Stage 2",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "homogenizer_pump_h1mo01",
+            "label": "Homogenizer Pump (H1MO01)",
+            "type": "number",
+            "unit": "%"
+          },
+          {
+            "key": "pressure_plant_sterilizer_h1mp20",
+            "label": "Pressure Plant Sterilizer (H1MP20)",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "suhu_pre_heat_holder_1_e3mt01",
+            "label": "Suhu Pre-Heat holder 1 (E3MT01)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "suhu_pre_heat_holder_2_w2mt01",
+            "label": "Suhu Pre-Heat holder 2 (W2MT01)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "holding_time_pre_heat",
+            "label": "Holding Time Pre-Heat",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "valve_steam_pre_heat_water_e3vc01",
+            "label": "Valve steam pre-heat water (E3VC01)",
+            "type": "number",
+            "unit": "%"
+          },
+          {
+            "key": "suhu_main_heater_e1mt01_ccp",
+            "label": "Suhu Main Heater (E1MT01) (CCP)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "suhu_product_alarm_e1mt02_ccp",
+            "label": "Suhu Product Alarm (E1MT02) (CCP)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "holding_time_main_heater_uht",
+            "label": "Holding Time Main Heater UHT",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "flow_hot_water_e1mf01",
+            "label": "Flow Hot Water (E1MF01)",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "suhu_hot_water_e1mt03",
+            "label": "Suhu Hot Water (E1MT03)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "hot_water_pump_capacity_e1pu01",
+            "label": "Hot Water Pump Capacity (E1PU01)",
+            "type": "number",
+            "unit": "%"
+          },
+          {
+            "key": "valve_steam_he_hot_water_e1vc01",
+            "label": "Valve steam HE Hot Water (E1VC01)",
+            "type": "number",
+            "unit": "%"
+          },
+          {
+            "key": "suhu_inlet_homo_aseptic_w6mt01",
+            "label": "Suhu inlet Homo Aseptic (W6MT01)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "pressure_inlet_homo_aseptic_h2mp01",
+            "label": "Pressure inlet Homo Aseptic (H2MP01)",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "suhu_condensat_barrier_homo_aseptic_h2mt02",
+            "label": "Suhu condensat barrier Homo Aseptic (H2MT02)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "suhu_outlet_pre_cooler_e2mt01",
+            "label": "Suhu Outlet Pre-Cooler (E2MT01)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "pressure_outlet_pre_cooler_w7mp01",
+            "label": "Pressure Outlet Pre-Cooler (W7MP01)",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "suhu_product_to_filling_w7mt01",
+            "label": "Suhu product to Filling (W7MT01)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "suhu_product_return_balance_tank_f1mt01",
+            "label": "Suhu product Return Balance Tank (F1MT01)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "total_filling_mesin_berjalan",
+            "label": "Total Filling mesin berjalan",
+            "type": "number",
+            "unit": "mesin"
+          },
+          {
+            "key": "filter_stlz_terpasang_bersih_tidak_rusak_oprp",
+            "label": "Filter STLZ terpasang, bersih, tidak rusak (OPRP)",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "tidak_ada_kebocoran_jalur_pipa_steril",
+            "label": "Tidak ada kebocoran jalur pipa steril",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "mode",
+            "label": "Mode Product / Water / CIP",
+            "type": "select",
+            "options": [
+              "",
+              "P",
+              "W",
+              "C"
+            ]
+          },
+          {
+            "key": "pengawas",
+            "label": "Pengawas",
+            "type": "text",
+            "computed": true,
+            "hint": "Persetujuan dicatat dari akun pengawas."
+          }
+        ],
+        "desc": "24 jam (01–24), sesuai F.U.F.060"
+      },
+      {
+        "id": "preheat",
+        "title": "Preheating Mesin",
+        "kind": "matrix",
+        "fields": [
+          {
+            "key": "start_preheating",
+            "label": "Start Preheating",
+            "type": "time"
+          },
+          {
+            "key": "sterilization_unit_stlz",
+            "label": "Sterilization Unit STLZ",
+            "type": "time"
+          },
+          {
+            "key": "main_heater_e1mt01",
+            "label": "Main Heater E1MT01",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "homo_aseptic_w6mt01",
+            "label": "Homo Aseptic W6MT01",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "homo_non_aseptic_h1mt10",
+            "label": "Homo Non Aseptic H1MT10",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "filling_temp_w7mt01",
+            "label": "Filling Temp W7MT01",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "suhu_return_sip_f1mt01",
+            "label": "Suhu return SIP F1MT01",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "time_sterilization",
+            "label": "Time Sterilization",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "cooling",
+            "label": "Cooling",
+            "type": "time"
+          },
+          {
+            "key": "cek_kebocoran_jalur_pipa",
+            "label": "Cek kebocoran jalur pipa",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          }
+        ],
+        "desc": "Sesi preheating 1–2",
+        "count": 2
+      },
+      {
+        "id": "wip",
+        "title": "Data Produk WIP yang Disterilisasi",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "start",
+            "label": "Start",
+            "type": "time"
+          },
+          {
+            "key": "finish",
+            "label": "Finish",
+            "type": "time"
+          },
+          {
+            "key": "produk",
+            "label": "Produk",
+            "type": "text"
+          },
+          {
+            "key": "nomor_batch",
+            "label": "Nomor Batch",
+            "type": "text"
+          },
+          {
+            "key": "nomor_lot",
+            "label": "Nomor Lot",
+            "type": "text"
+          },
+          {
+            "key": "nomor_st",
+            "label": "Nomor ST",
+            "type": "text"
+          },
+          {
+            "key": "total",
+            "label": "Total",
+            "type": "number",
+            "unit": "L"
+          }
+        ],
+        "desc": "Tambah satu baris untuk tiap batch"
+      },
+      {
+        "id": "cip_stlz",
+        "title": "CIP Sterilizer",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "start",
+            "label": "Start",
+            "type": "time"
+          },
+          {
+            "key": "finish",
+            "label": "Finish",
+            "type": "time"
+          },
+          {
+            "key": "cip_type",
+            "label": "Jenis CIP",
+            "type": "select",
+            "options": [
+              "",
+              "FC",
+              "IC"
+            ]
+          },
+          {
+            "key": "caustic_flow_cip",
+            "label": "Caustic flow CIP",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "caustic_suhu",
+            "label": "Caustic suhu",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "caustic_waktu",
+            "label": "Caustic waktu",
+            "type": "number",
+            "unit": "menit"
+          },
+          {
+            "key": "caustic_concentration",
+            "label": "Caustic concentration",
+            "type": "number",
+            "unit": "%/mS"
+          },
+          {
+            "key": "acid_flow_cip",
+            "label": "Acid flow CIP",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "acid_suhu",
+            "label": "Acid suhu",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "acid_waktu",
+            "label": "Acid waktu",
+            "type": "number",
+            "unit": "menit"
+          },
+          {
+            "key": "acid_concentration",
+            "label": "Acid concentration",
+            "type": "number",
+            "unit": "%/mS"
+          },
+          {
+            "key": "ph",
+            "label": "pH",
+            "type": "number"
+          },
+          {
+            "key": "pipa_u_bersih",
+            "label": "Pipa U bersih",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "shift",
+        "title": "Catatan & Pengawas",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "pengawas_shift_1",
+            "label": "Pengawas shift 1",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_2",
+            "label": "Pengawas shift 2",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_3",
+            "label": "Pengawas shift 3",
+            "type": "text"
+          },
+          {
+            "key": "operator",
+            "label": "Operator",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "textarea"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ASEPTIC_GEA",
+    "title": "Produksi Aseptic Tank GEA",
+    "area": "Aseptic Tank",
+    "formNo": "F.U.F.040",
+    "rev": "03",
+    "effective": "Mar-22",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin / Line",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Nomor batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Nomor lot",
+        "type": "text"
+      },
+      {
+        "key": "stlz",
+        "label": "No STLZ",
+        "type": "select",
+        "options": [
+          "",
+          "Q",
+          "R",
+          "S",
+          "T",
+          "U",
+          "N",
+          "O",
+          "P",
+          "H",
+          "I",
+          "J",
+          "K",
+          "L"
+        ],
+        "required": true
+      },
+      {
+        "key": "at",
+        "label": "No AT",
+        "type": "select",
+        "required": true,
+        "options": [
+          "",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "12",
+          "13",
+          "14"
+        ]
+      },
+      {
+        "key": "operator",
+        "label": "Nama operator shift",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Nama pengawas shift",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "preheat",
+        "title": "Preheating Mesin",
+        "kind": "matrix",
+        "fields": [
+          {
+            "key": "power_on",
+            "label": "Power On",
+            "type": "time"
+          },
+          {
+            "key": "preheating",
+            "label": "Preheating",
+            "type": "time"
+          },
+          {
+            "key": "sterilizing",
+            "label": "Sterilizing",
+            "type": "time"
+          },
+          {
+            "key": "cooling_1",
+            "label": "Cooling 1",
+            "type": "time"
+          },
+          {
+            "key": "cooling_2",
+            "label": "Cooling 2",
+            "type": "time"
+          },
+          {
+            "key": "draining_1",
+            "label": "Draining 1",
+            "type": "time"
+          },
+          {
+            "key": "draining_2",
+            "label": "Draining 2",
+            "type": "time"
+          },
+          {
+            "key": "ready",
+            "label": "Ready",
+            "type": "time"
+          }
+        ],
+        "count": 4
+      },
+      {
+        "id": "hour",
+        "title": "Parameter Produksi per Jam",
+        "kind": "hourly",
+        "fields": [
+          {
+            "key": "sit1mt_01_tank_outlet",
+            "label": "SIT1MT 01 Tank Outlet",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "sit1mt_02_tank_outlet_steam",
+            "label": "SIT1MT 02 Tank Outlet Steam",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "siarmt_01_steam_filter",
+            "label": "SIARMT 01 Steam Filter",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "sicpmt_01_inlet_cip",
+            "label": "SICPMT 01 Inlet CIP",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "sicrmt_01_eng_cluster",
+            "label": "SICRMT 01 Eng Cluster",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "sif1mt_01_filling_cluster",
+            "label": "SIF1MT 01 Filling Cluster",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "sia1mt_01_agitator",
+            "label": "SIA1MT 01 Agitator",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "f1mt01_steam_barrier",
+            "label": "F1MT01 Steam Barrier",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "crva01_condensat_barrier_ccp",
+            "label": "CRVA01 condensat barrier (CCP)",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "temp_pressure_down",
+            "label": "Temp Pressure down",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "temp_pressure_up",
+            "label": "Temp Pressure up",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "tank_volume",
+            "label": "Tank Volume",
+            "type": "number",
+            "unit": "%"
+          },
+          {
+            "key": "filling_pressure",
+            "label": "Filling Pressure",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "agitator_run_check",
+            "label": "Agitator run check",
+            "type": "number",
+            "unit": "%"
+          },
+          {
+            "key": "aseptic_filter_usage_ccp",
+            "label": "Aseptic filter usage (CCP)",
+            "type": "number",
+            "unit": "jam"
+          },
+          {
+            "key": "total_filling_mesin_run",
+            "label": "Total Filling mesin run",
+            "type": "number",
+            "unit": "unit"
+          },
+          {
+            "key": "mode",
+            "label": "Mode Product / Water / CIP",
+            "type": "select",
+            "options": [
+              "",
+              "P",
+              "W",
+              "C"
+            ]
+          },
+          {
+            "key": "tidak_ada_kebocoran_jalur_steril",
+            "label": "Tidak ada kebocoran jalur steril",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "fungsi_steam_trap",
+            "label": "Fungsi steam trap",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "pengawas",
+            "label": "Pengawas",
+            "type": "text",
+            "computed": true,
+            "hint": "Persetujuan dicatat dari akun pengawas."
+          }
+        ],
+        "desc": "24 jam (01–24), sesuai F.U.F.040"
+      },
+      {
+        "id": "wip",
+        "title": "Data WIP yang Disterilisasi",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "produk",
+            "label": "Produk",
+            "type": "text"
+          },
+          {
+            "key": "nomor_batch",
+            "label": "Nomor Batch",
+            "type": "text"
+          },
+          {
+            "key": "nomor_lot",
+            "label": "Nomor Lot",
+            "type": "text"
+          },
+          {
+            "key": "nomor_st",
+            "label": "Nomor ST",
+            "type": "text"
+          },
+          {
+            "key": "total",
+            "label": "Total",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "mulai",
+            "label": "Mulai",
+            "type": "time"
+          },
+          {
+            "key": "selesai",
+            "label": "Selesai",
+            "type": "time"
+          }
+        ]
+      },
+      {
+        "id": "cip_summary",
+        "title": "Ringkasan CIP Aseptic Tank",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "mulai",
+            "label": "Mulai",
+            "type": "time"
+          },
+          {
+            "key": "selesai",
+            "label": "Selesai",
+            "type": "time"
+          },
+          {
+            "key": "flow",
+            "label": "Flow",
+            "type": "number"
+          },
+          {
+            "key": "caustic_suhu",
+            "label": "Caustic suhu",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "caustic_waktu",
+            "label": "Caustic waktu",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "caustic_konsentrasi",
+            "label": "Caustic konsentrasi",
+            "type": "number"
+          },
+          {
+            "key": "acid_suhu",
+            "label": "Acid suhu",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "acid_waktu",
+            "label": "Acid waktu",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "acid_konsentrasi",
+            "label": "Acid konsentrasi",
+            "type": "number"
+          },
+          {
+            "key": "ph",
+            "label": "pH",
+            "type": "number"
+          }
+        ],
+        "desc": "Ringkasan sesuai bagian CIP AT pada F.U.F.040. Form CIP lengkap tersedia di submenu terpisah."
+      },
+      {
+        "id": "shift",
+        "title": "Operator & Pengawas",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "operator_shift_1",
+            "label": "Operator Shift 1",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_1",
+            "label": "Pengawas Shift 1",
+            "type": "text"
+          },
+          {
+            "key": "operator_shift_2",
+            "label": "Operator Shift 2",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_2",
+            "label": "Pengawas Shift 2",
+            "type": "text"
+          },
+          {
+            "key": "operator_shift_3",
+            "label": "Operator Shift 3",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_3",
+            "label": "Pengawas Shift 3",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "textarea"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ASEPTIC_CIP",
+    "title": "CIP Aseptic Tank",
+    "area": "Aseptic Tank",
+    "formNo": "F.U.U.CL.04",
+    "rev": "05",
+    "effective": "Feb-25",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin / Line",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Nomor batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Nomor lot",
+        "type": "text"
+      },
+      {
+        "key": "at",
+        "label": "No AT",
+        "type": "select",
+        "required": true,
+        "options": [
+          "",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "12",
+          "13",
+          "14"
+        ]
+      },
+      {
+        "key": "stlz",
+        "label": "Nomor sterilizer",
+        "type": "select",
+        "options": [
+          "",
+          "Q",
+          "R",
+          "S",
+          "T",
+          "U",
+          "N",
+          "O",
+          "P",
+          "H",
+          "I",
+          "J",
+          "K",
+          "L"
+        ],
+        "required": true
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "cip",
+        "title": "Isian CIP Aseptic Tank",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "produk_sebelum_cip",
+            "label": "Produk sebelum CIP",
+            "type": "text"
+          },
+          {
+            "key": "nama_alat_mesin",
+            "label": "Nama alat / mesin",
+            "type": "text"
+          },
+          {
+            "key": "cip_circuit",
+            "label": "CIP circuit",
+            "type": "text"
+          },
+          {
+            "key": "pre_rinse",
+            "label": "Pre rinse",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "caustic_flow",
+            "label": "Caustic flow",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "caustic_waktu",
+            "label": "Caustic waktu",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "caustic_suhu",
+            "label": "Caustic suhu",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "caustic_konsentrasi",
+            "label": "Caustic konsentrasi",
+            "type": "number",
+            "unit": "mS / %"
+          },
+          {
+            "key": "intermediate_rinse",
+            "label": "Intermediate rinse",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "acid_flow",
+            "label": "Acid flow",
+            "type": "number",
+            "unit": "L/jam"
+          },
+          {
+            "key": "acid_waktu",
+            "label": "Acid waktu",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "acid_suhu",
+            "label": "Acid suhu",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "acid_konsentrasi",
+            "label": "Acid konsentrasi",
+            "type": "number",
+            "unit": "mS / %"
+          },
+          {
+            "key": "final_rinse_waktu",
+            "label": "Final rinse waktu",
+            "type": "number",
+            "unit": "detik"
+          },
+          {
+            "key": "final_rinse_conductivity",
+            "label": "Final rinse conductivity",
+            "type": "number",
+            "unit": "mS"
+          },
+          {
+            "key": "final_rinse_ph",
+            "label": "Final rinse pH",
+            "type": "number"
+          },
+          {
+            "key": "start_cip",
+            "label": "Start CIP",
+            "type": "time"
+          },
+          {
+            "key": "stop_cip",
+            "label": "Stop CIP",
+            "type": "time"
+          },
+          {
+            "key": "operator",
+            "label": "Operator",
+            "type": "text"
+          },
+          {
+            "key": "supervisor",
+            "label": "Supervisor",
+            "type": "text"
+          },
+          {
+            "key": "change_solution",
+            "label": "Tanggal ganti larutan CIP",
+            "type": "date"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "textarea"
+          }
+        ]
+      },
+      {
+        "id": "notes",
+        "title": "Catatan Prosedur",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "additional_notes",
+            "label": "Catatan tambahan",
+            "type": "textarea"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PACKING_CBP",
+    "title": "High Speed Cardboard Packer (CBP)",
+    "area": "Packing",
+    "formNo": "F.U.F.012",
+    "rev": "04",
+    "effective": "Mar-24",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin / Line",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Nomor batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Nomor lot",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "production",
+        "title": "Produksi",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "mulai_produksi",
+            "label": "Mulai produksi",
+            "type": "time"
+          },
+          {
+            "key": "selesai_produksi",
+            "label": "Selesai produksi",
+            "type": "time"
+          },
+          {
+            "key": "jenis_produk",
+            "label": "Jenis produk",
+            "type": "text"
+          },
+          {
+            "key": "no_pb_production_batch",
+            "label": "No PB (Production Batch)",
+            "type": "text"
+          },
+          {
+            "key": "no_mesin",
+            "label": "No mesin",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "id": "completeness",
+        "title": "Completeness awal shift",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "completeness_shift_1",
+            "label": "Completeness Shift 1",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "completeness_shift_2",
+            "label": "Completeness Shift 2",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "completeness_shift_3",
+            "label": "Completeness Shift 3",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "machine",
+        "title": "Pengecekan Mesin CBP",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "jam_pengecekan",
+            "label": "Jam pengecekan",
+            "type": "time"
+          },
+          {
+            "key": "checked_by",
+            "label": "Pemeriksa",
+            "type": "text"
+          },
+          {
+            "key": "machine_type",
+            "label": "Tipe mesin",
+            "type": "select",
+            "options": [
+              "",
+              "UJ",
+              "CB/TP"
+            ]
+          },
+          {
+            "key": "compressor_air",
+            "label": "Compressor air",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "alarm_lamp_test",
+            "label": "Alarm & Lamp test",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "lubrication_level",
+            "label": "Lubrication level",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "suction_cup_function",
+            "label": "Suction cup function",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "silinder_roller_tidak_ada_yang_macet",
+            "label": "Silinder / Roller tidak ada yang macet",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "sensor_belt_distribution_machine_normal",
+            "label": "Sensor / belt distribution machine normal",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "sensor_conveyor_normal",
+            "label": "Sensor conveyor normal",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "conveyor_bersih_tidak_tajam",
+            "label": "Conveyor bersih, tidak tajam",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          }
+        ],
+        "desc": "Satu baris per pemeriksaan"
+      },
+      {
+        "id": "glue",
+        "title": "Pengecekan Mesin Glue",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "jam_pengecekan",
+            "label": "Jam pengecekan",
+            "type": "time"
+          },
+          {
+            "key": "pemeriksa",
+            "label": "Pemeriksa",
+            "type": "text"
+          },
+          {
+            "key": "glue_type",
+            "label": "Tipe glue",
+            "type": "select",
+            "options": [
+              "",
+              "UJ",
+              "HKL/HBF"
+            ]
+          },
+          {
+            "key": "suhu_hot_melt_tank",
+            "label": "Suhu Hot melt tank",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "pressure_hot_melt_tank",
+            "label": "Pressure Hot melt tank",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "suhu_hot_melt_hose",
+            "label": "Suhu Hot melt Hose",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "pressure_hot_melt_hose",
+            "label": "Pressure Hot melt hose",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "nozzle_hot_melt_tidak_kotor_block",
+            "label": "Nozzle Hot melt tidak kotor / block",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "posisi_tembakan_hotmelt_sesuai",
+            "label": "Posisi tembakan hotmelt sesuai",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "hour",
+        "title": "Cek Parameter per Jam",
+        "kind": "hourly",
+        "fields": [
+          {
+            "key": "top_flap_sealing_box",
+            "label": "Top Flap sealing - box",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "left_flap_sealing_box",
+            "label": "Left Flap sealing - box",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "right_flap_sealing_box",
+            "label": "Right Flap sealing - box",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "box_design_printing_color",
+            "label": "Box design & printing color",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "kode_box_sesuai_dan_terbaca",
+            "label": "Kode Box (sesuai dan terbaca)",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "suhu_hotmelt_tank",
+            "label": "Suhu Hotmelt Tank",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "dented_product_in_box",
+            "label": "Dented Product in box",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "warna_lakban_unilever",
+            "label": "Warna Lakban (Unilever)",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ]
+          },
+          {
+            "key": "pengawas",
+            "label": "Pengawas",
+            "type": "text"
+          }
+        ],
+        "desc": "24 jam (00–23), sesuai F.U.F.012"
+      },
+      {
+        "id": "box",
+        "title": "Penggunaan Box (Box Usage)",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "time",
+            "label": "Time",
+            "type": "time"
+          },
+          {
+            "key": "nama_produk",
+            "label": "Nama Produk",
+            "type": "text"
+          },
+          {
+            "key": "lot_pm",
+            "label": "Lot PM",
+            "type": "text"
+          },
+          {
+            "key": "mfg_date",
+            "label": "Mfg Date",
+            "type": "date"
+          },
+          {
+            "key": "qty",
+            "label": "Qty",
+            "type": "number",
+            "unit": "pcs"
+          },
+          {
+            "key": "row_shift",
+            "label": "Shift",
+            "type": "select",
+            "options": [
+              "",
+              "1",
+              "2",
+              "3"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "event",
+        "title": "Down Time / Event Packing & Robot",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "stop",
+            "label": "Stop",
+            "type": "time"
+          },
+          {
+            "key": "start",
+            "label": "Start",
+            "type": "time"
+          },
+          {
+            "key": "event_kejadian",
+            "label": "Event / Kejadian",
+            "type": "text"
+          },
+          {
+            "key": "row_shift",
+            "label": "Shift",
+            "type": "select",
+            "options": [
+              "",
+              "1",
+              "2",
+              "3"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "shift",
+        "title": "Operator & Pengawas",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "operator_shift_1",
+            "label": "Operator Shift 1",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_1",
+            "label": "Pengawas Shift 1",
+            "type": "text"
+          },
+          {
+            "key": "operator_shift_2",
+            "label": "Operator Shift 2",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_2",
+            "label": "Pengawas Shift 2",
+            "type": "text"
+          },
+          {
+            "key": "operator_shift_3",
+            "label": "Operator Shift 3",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_3",
+            "label": "Pengawas Shift 3",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "textarea"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SUPERVISOR_DAILY",
+    "title": "Supervisor Daily Reports (U.H.T)",
+    "area": "Supervisor",
+    "formNo": "F.U.F.023",
+    "rev": "04",
+    "effective": "Mar-20",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin / Line",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Nomor batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Nomor lot",
+        "type": "text"
+      },
+      {
+        "key": "stlz",
+        "label": "Unit Sterilizer",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "entries",
+        "title": "Aktivitas Harian",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "row_date",
+            "label": "Hari / Tanggal",
+            "type": "date"
+          },
+          {
+            "key": "product_name",
+            "label": "Product Name",
+            "type": "text"
+          },
+          {
+            "key": "no_lot_wip",
+            "label": "No Lot WIP",
+            "type": "text"
+          },
+          {
+            "key": "no_batch_wip",
+            "label": "No Batch WIP",
+            "type": "text"
+          },
+          {
+            "key": "no_st",
+            "label": "No ST",
+            "type": "text"
+          },
+          {
+            "key": "volume",
+            "label": "Volume",
+            "type": "number",
+            "unit": "L"
+          },
+          {
+            "key": "product_to_at_start",
+            "label": "Product To AT Start",
+            "type": "time"
+          },
+          {
+            "key": "product_to_at_stop",
+            "label": "Product To AT Stop",
+            "type": "time"
+          },
+          {
+            "key": "filling_machine_start",
+            "label": "Filling Machine Start",
+            "type": "time"
+          },
+          {
+            "key": "filling_machine_stop",
+            "label": "Filling Machine Stop",
+            "type": "time"
+          },
+          {
+            "key": "cip_sterilizer_start",
+            "label": "CIP Sterilizer Start",
+            "type": "time"
+          },
+          {
+            "key": "cip_sterilizer_stop",
+            "label": "CIP Sterilizer Stop",
+            "type": "time"
+          },
+          {
+            "key": "cip_aseptic_tank_start",
+            "label": "CIP Aseptic Tank Start",
+            "type": "time"
+          },
+          {
+            "key": "cip_aseptic_tank_stop",
+            "label": "CIP Aseptic Tank Stop",
+            "type": "time"
+          },
+          {
+            "key": "note",
+            "label": "Note",
+            "type": "text"
+          }
+        ],
+        "desc": "Satu baris untuk setiap periode / batch"
+      },
+      {
+        "id": "sign",
+        "title": "Pengawas & Catatan",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "pengawas_shift_1",
+            "label": "Pengawas Shift 1",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_2",
+            "label": "Pengawas Shift 2",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_3",
+            "label": "Pengawas Shift 3",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "textarea"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PACKING_STRAW",
+    "title": "Laporan Produksi Mesin Straw Applicator",
+    "area": "Packing",
+    "formNo": "F.U.F.029",
+    "rev": "04",
+    "effective": "Nov-21",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Jenis produk",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "No Batch / PB",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "No Lot Internal",
+        "type": "text"
+      },
+      {
+        "key": "operator",
+        "label": "Nama operator",
+        "type": "text"
+      },
+      {
+        "key": "supervisor",
+        "label": "Nama pengawas",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "preparation",
+        "title": "1. Persiapan / Preheating",
+        "kind": "matrix",
+        "fields": [
+          {
+            "key": "mulai_preheating",
+            "label": "Mulai Preheating",
+            "type": "time"
+          },
+          {
+            "key": "selesai_preheating",
+            "label": "Selesai Preheating",
+            "type": "time"
+          }
+        ],
+        "count": 3,
+        "desc": "Tiga kolom persiapan mengikuti F.U.F.029."
+      },
+      {
+        "id": "production",
+        "title": "2. Produksi",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "jenis_produk",
+            "label": "Jenis produk",
+            "type": "text"
+          },
+          {
+            "key": "volume",
+            "label": "Volume kemasan",
+            "type": "text"
+          },
+          {
+            "key": "mulai_produksi",
+            "label": "Mulai produksi",
+            "type": "time"
+          },
+          {
+            "key": "selesai_produksi",
+            "label": "Selesai produksi",
+            "type": "time"
+          },
+          {
+            "key": "tidak_ada_produk_lain_di_jalur",
+            "label": "Cek tidak ada produk lain di jalur",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "check_straw",
+        "title": "3. Pengecekan Mesin Straw",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "jam_pengecekan",
+            "label": "Jam pengecekan",
+            "type": "time"
+          },
+          {
+            "key": "tipe_mesin",
+            "label": "Tipe",
+            "type": "select",
+            "options": [
+              "",
+              "UJ",
+              "CB/TP"
+            ]
+          },
+          {
+            "key": "compressor_air",
+            "label": "Compressor air",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "alarm_lamp_test",
+            "label": "Alarm & Lamp test",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "lubrication_level",
+            "label": "Lubrication level",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "semua_silinder_roller",
+            "label": "Semua silinder & roller berfungsi baik",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "diperiksa_oleh",
+            "label": "Diperiksa oleh",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "id": "check_conveyor",
+        "title": "4. Pengecekan Conveyor",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "sensor_conveyor_bekerja",
+            "label": "Semua sensor conveyor bekerja",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "lubrikasi_conveyor",
+            "label": "Lubrikasi conveyor lancar",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "conveyor_bersih",
+            "label": "Conveyor bersih, tidak melukai pak",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "accumulator_conveyor",
+            "label": "Accumulator conveyor baik",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "accumulator_sensor",
+            "label": "Accumulator conveyor sensor",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "diperiksa_oleh",
+            "label": "Diperiksa oleh",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "id": "check_glue",
+        "title": "5. Pengecekan Mesin Glue",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "jam_pengecekan",
+            "label": "Jam pengecekan",
+            "type": "time"
+          },
+          {
+            "key": "jenis",
+            "label": "Jenis",
+            "type": "select",
+            "options": [
+              "",
+              "UJ",
+              "HKL/HBF"
+            ]
+          },
+          {
+            "key": "suhu_tank",
+            "label": "Suhu hot melt tank",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "pressure_tank",
+            "label": "Pressure hot melt tank",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "suhu_hose",
+            "label": "Suhu hot melt hose",
+            "type": "number",
+            "unit": "°C"
+          },
+          {
+            "key": "pressure_hose",
+            "label": "Pressure hot melt",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "gun_pressure",
+            "label": "HotMelt gun pressure",
+            "type": "number",
+            "unit": "bar"
+          },
+          {
+            "key": "nozzle",
+            "label": "Nozzle Hot melt tidak kotor / block",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "posisi_hotmelt",
+            "label": "Posisi tembakan hotmelt sesuai",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "diperiksa_oleh",
+            "label": "Diperiksa oleh",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "id": "hour",
+        "title": "6. Cek Parameter Produksi (24 Jam)",
+        "kind": "hourly",
+        "fields": [
+          {
+            "key": "kode_pak",
+            "label": "Kode pak (tgl expired, jam, no. FM)",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "print_kode",
+            "label": "Print kode (jelas, posisi sesuai)",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "pak_tanpa_goresan",
+            "label": "Kondisi pak tidak ada goresan",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "pak_bersih",
+            "label": "Kondisi pak bersih",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "design_pak",
+            "label": "Design pak (crease line simetris)",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "posisi_straw",
+            "label": "Posisi straw di pak sesuai standar",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "lem_straw",
+            "label": "Lem straw menempel kuat",
+            "type": "check",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK"
+            ]
+          },
+          {
+            "key": "pengawas",
+            "label": "Pengawas",
+            "type": "text"
+          }
+        ],
+        "desc": "Kolom 00–23 dan wheel picker, sesuai format fisik."
+      },
+      {
+        "id": "material",
+        "title": "7. Penggunaan Straw & Lem",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "material",
+            "label": "Jenis material",
+            "type": "select",
+            "options": [
+              "",
+              "Straw 1",
+              "Straw 2",
+              "Straw 3",
+              "Straw 4",
+              "Lem"
+            ]
+          },
+          {
+            "key": "waktu",
+            "label": "Waktu",
+            "type": "time"
+          },
+          {
+            "key": "lot_internal",
+            "label": "Lot Internal",
+            "type": "text"
+          },
+          {
+            "key": "no_pallet",
+            "label": "No. Pallet",
+            "type": "text"
+          }
+        ],
+        "desc": "Empat kelompok Straw dan satu Lem; tambah baris sesuai pemakaian."
+      },
+      {
+        "id": "shift",
+        "title": "8. Operator, Pengawas & Catatan",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "operator_shift_1",
+            "label": "Operator Shift 1",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_1",
+            "label": "Pengawas Shift 1",
+            "type": "text"
+          },
+          {
+            "key": "operator_shift_2",
+            "label": "Operator Shift 2",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_2",
+            "label": "Pengawas Shift 2",
+            "type": "text"
+          },
+          {
+            "key": "operator_shift_3",
+            "label": "Operator Shift 3",
+            "type": "text"
+          },
+          {
+            "key": "pengawas_shift_3",
+            "label": "Pengawas Shift 3",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "textarea"
+          },
+          {
+            "key": "print_kode_1",
+            "label": "Referensi print kode pak 1",
+            "type": "text"
+          },
+          {
+            "key": "print_kode_2",
+            "label": "Referensi print kode pak 2",
+            "type": "text"
+          },
+          {
+            "key": "print_kode_3",
+            "label": "Referensi print kode pak 3",
+            "type": "text"
+          },
+          {
+            "key": "print_kode_4",
+            "label": "Referensi print kode pak 4",
+            "type": "text"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "FILL_PRODUCTION",
+    "title": "Laporan Produksi Filling Machine",
+    "area": "Filling",
+    "formNo": "F.U.F.039",
+    "rev": "05",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal produksi",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Lot",
+        "type": "text"
+      },
+      {
+        "key": "operator",
+        "label": "Nama operator",
+        "type": "text"
+      },
+      {
+        "key": "supervisor",
+        "label": "Nama pengawas",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "PREPARATION",
+        "title": "Persiapan",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "PREHEATING_II",
+            "label": "Preheating II",
+            "type": "time",
+            "hint": "Jam",
+            "required": true
+          },
+          {
+            "key": "PRODUCT_STERILE_AIR_LEAK",
+            "label": "Cek kebocoran produk / udara steril",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "OK",
+            "required": true
+          },
+          {
+            "key": "TUBE_SEALING",
+            "label": "Tube Sealing",
+            "type": "time",
+            "hint": "Jam",
+            "required": true
+          },
+          {
+            "key": "HEAD_STERILIZATION",
+            "label": "Head Sterilization",
+            "type": "time",
+            "hint": "Jam",
+            "required": true
+          },
+          {
+            "key": "H2O2_SPRAYING",
+            "label": "H2O2 Spraying",
+            "type": "time",
+            "hint": "Jam",
+            "required": true
+          },
+          {
+            "key": "DRYING_TIME",
+            "label": "Drying Time",
+            "type": "time",
+            "hint": "Jam",
+            "required": true
+          },
+          {
+            "key": "READY_PRODUCTION",
+            "label": "Ready Production",
+            "type": "time",
+            "hint": "Jam",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "PRODUCTION",
+        "title": "Produksi",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "PRODUCT_TYPE",
+            "label": "Jenis Produk",
+            "type": "text",
+            "hint": "Contoh: CHS",
+            "required": true
+          },
+          {
+            "key": "PRODUCTION_START",
+            "label": "Mulai Produksi",
+            "type": "time",
+            "hint": "Jam",
+            "required": true
+          },
+          {
+            "key": "PRODUCTION_END",
+            "label": "Selesai Produksi",
+            "type": "time",
+            "hint": "Jam",
+            "required": false
+          },
+          {
+            "key": "NO_OTHER_PRODUCT",
+            "label": "Cek tidak ada produk lain di jalur",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "✓",
+            "required": true
+          },
+          {
+            "key": "RUNNING_HOUR_START",
+            "label": "Running Hour Machine — Start",
+            "type": "number",
+            "hint": "Hours",
+            "required": false
+          },
+          {
+            "key": "RUNNING_HOUR_STOP",
+            "label": "Running Hour Machine — Stop",
+            "type": "number",
+            "hint": "Hours",
+            "required": false
+          },
+          {
+            "key": "COUNTER_1",
+            "label": "Counter 1",
+            "type": "number",
+            "hint": "",
+            "required": false
+          },
+          {
+            "key": "COUNTER_2",
+            "label": "Counter 2",
+            "type": "number",
+            "hint": "",
+            "required": false
+          },
+          {
+            "key": "COUNTER_3",
+            "label": "Counter 3",
+            "type": "number",
+            "hint": "",
+            "required": false
+          }
+        ]
+      },
+      {
+        "id": "CIP_SUMMARY",
+        "title": "Ringkasan CIP",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "CIP_TYPE",
+            "label": "Jenis CIP",
+            "type": "select",
+            "options": [
+              "",
+              "FC",
+              "IC"
+            ],
+            "hint": "FC / IC",
+            "required": false
+          },
+          {
+            "key": "CIP_START",
+            "label": "Mulai CIP",
+            "type": "time",
+            "hint": "Jam",
+            "required": false
+          },
+          {
+            "key": "CIP_END",
+            "label": "Selesai CIP",
+            "type": "time",
+            "hint": "Jam",
+            "required": false
+          },
+          {
+            "key": "VALVE_C",
+            "label": "Posisi Valve-C saat CIP",
+            "type": "select",
+            "options": [
+              "",
+              "N",
+              "T"
+            ],
+            "hint": "N / T",
+            "required": false
+          },
+          {
+            "key": "CHEMICAL",
+            "label": "Bahan Kimia",
+            "type": "select",
+            "options": [
+              "",
+              "Caustic",
+              "Caustic Acid"
+            ],
+            "hint": "Caustic / Caustic Acid",
+            "required": false
+          }
+        ]
+      },
+      {
+        "id": "MACHINE_CHECK",
+        "title": "Pemeriksaan mesin",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "DISINFECT_HANDS_H2O2",
+            "label": "Desinfect hands / Safety H2O2",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "OK",
+            "required": true
+          },
+          {
+            "key": "AIR_SUPPLY",
+            "label": "Air Supply",
+            "type": "number",
+            "hint": "6–7 Bar",
+            "required": true
+          },
+          {
+            "key": "WATER_SUPPLY",
+            "label": "Water Supply",
+            "type": "number",
+            "hint": "3–4.5 Bar",
+            "required": true
+          },
+          {
+            "key": "COOLING_WATER",
+            "label": "Cooling Water System",
+            "type": "number",
+            "hint": "2 Bar",
+            "required": true
+          },
+          {
+            "key": "STEAM_PRESSURE",
+            "label": "Steam Pressure",
+            "type": "number",
+            "hint": "1.7 Bar",
+            "required": true
+          },
+          {
+            "key": "UPPER_FILLING_PIPE",
+            "label": "Upper Filling Pipe",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "Cek kebersihan",
+            "required": true
+          },
+          {
+            "key": "FLOAT",
+            "label": "Float",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "Digoyang tidak koclak",
+            "required": true
+          },
+          {
+            "key": "H2O2_MANUAL",
+            "label": "H2O2 Manual Check",
+            "type": "number",
+            "hint": "35–50%",
+            "required": true
+          },
+          {
+            "key": "SA_IH_TUBESEAL",
+            "label": "SA IH Power Tubeseal",
+            "type": "number",
+            "hint": "300–800 W",
+            "required": true
+          },
+          {
+            "key": "LS_IH_TUBESEAL",
+            "label": "LS IH Power Tubeseal",
+            "type": "number",
+            "hint": "300–800 W",
+            "required": true
+          },
+          {
+            "key": "TIGHT_TUBE_SEAL",
+            "label": "Tight tube LS/SA Sealing",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "Cek seal",
+            "required": true
+          },
+          {
+            "key": "HEAT_STERILIZATION",
+            "label": "Heat Sterilization Temp",
+            "type": "number",
+            "hint": "280°C",
+            "required": true
+          },
+          {
+            "key": "AIR_H2O2_SPRAY",
+            "label": "Air to H2O2 Spray",
+            "type": "number",
+            "hint": "2.5–4 Bar",
+            "required": true
+          },
+          {
+            "key": "H2O2_WETTING",
+            "label": "H2O2 Spray Wetting Check",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "OK",
+            "required": true
+          },
+          {
+            "key": "COOLING_FLOW_METER",
+            "label": "Cooling-water Flow Meter",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "Cek flow",
+            "required": true
+          },
+          {
+            "key": "MILIPORE_ALARM",
+            "label": "Millipore cek alarm",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "Panggil teknisi",
+            "required": true
+          },
+          {
+            "key": "CALENDER_ROLLER",
+            "label": "Calender Roller",
+            "type": "number",
+            "hint": "4 Bar",
+            "required": true
+          },
+          {
+            "key": "COUNTER_ROLLER_PRESSURE",
+            "label": "Counter Roller Pressure",
+            "type": "number",
+            "hint": "2–5 Bar",
+            "required": true
+          },
+          {
+            "key": "BARCODE_PHOTOCELL_PRESSURE",
+            "label": "Barcode Photocell Pressure",
+            "type": "number",
+            "hint": "0.2 Bar",
+            "required": true
+          },
+          {
+            "key": "FLAP_SEALING_PRESSURE",
+            "label": "Flap Sealing Pressure",
+            "type": "number",
+            "hint": "1.5–2 Bar",
+            "required": true
+          },
+          {
+            "key": "WATER_H2O2_HEATING_CHECK",
+            "label": "Water H2O2 Heating",
+            "type": "number",
+            "hint": "1.5–2 Bar",
+            "required": true
+          },
+          {
+            "key": "DOOR_SAFETY_A_CHAMBER",
+            "label": "Door Safety & A Chamber",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "Ditutup",
+            "required": true
+          },
+          {
+            "key": "ALL_UNION_TIGHTENED",
+            "label": "All Union Tightened",
+            "type": "select",
+            "options": [
+              "",
+              "OK",
+              "TIDAK OK",
+              "N/A"
+            ],
+            "hint": "Tidak bocor",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "maintenance",
+        "title": "Perawatan harian",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "UPPER_FILLING_PIPE_PIN",
+            "label": "Upper filling pipe & Pin",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "LOWER_FILLING_PIPE_FLOAT",
+            "label": "Lower filling pipe / float",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "LS_PRESSURE_ROLLER",
+            "label": "LS Pressure Roller",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "LS_INDUCTOR",
+            "label": "LS Inductor",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "LOWER_FORMING_RINGS",
+            "label": "Lower forming rings",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "ASEPTIC_CHAMBER",
+            "label": "Aseptic Chamber",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "FORMING_RINGS",
+            "label": "Forming rings",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "CALENDER_ROLLERS",
+            "label": "Calender rollers",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "DRIVE_ROLLERS",
+            "label": "Drive rollers",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "CIP_PIPE_CONNECTION",
+            "label": "Sambung pipa CIP",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Periksa gaskets",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "BARCODE_PHOTOCELL_LENS",
+            "label": "Barcode photocell lens",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "JAW_CUTTING_SPRINGS",
+            "label": "Jaw Cutting springs",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "FOLDING_FLAP_SPRINGS",
+            "label": "Folding flap springs",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "DOLLY_INDUCTOR",
+            "label": "Dolly / Inductor",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "FERRIT",
+            "label": "Ferrit",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek & Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "SQUEEZER_BELT",
+            "label": "Squeezer-belt F. Folder",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "FLAP_SEALING_NOZZLE",
+            "label": "Flap sealing nozzle F. Folder",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "ASU_ASSU_SA_INDUCTOR",
+            "label": "ASU/ASSU&SA-Inductor",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "AUTO_EXTERNAL_CLEANING",
+            "label": "Start CIP & Auto external cleaning",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Cek",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "MACHINE_BODY",
+            "label": "M/C Body / Pintu / Kaca / Lantai",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "hint": "Bersihkan",
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          }
+        ],
+        "dailyLock": true
+      },
+      {
+        "id": "hour",
+        "title": "Parameter per jam",
+        "kind": "hourly",
+        "fields": [
+          {
+            "key": "AIR_SUPERHEATED",
+            "label": "Air Superheated (CCP)",
+            "type": "number",
+            "unit": "°C",
+            "hint": "Op: 360°C; Critical Limit: 330°C",
+            "required": true,
+            "lower": 330,
+            "upper": ""
+          },
+          {
+            "key": "H2O2_TPOP",
+            "label": "H2O2 di TPOP (CCP)",
+            "type": "number",
+            "unit": "%",
+            "hint": "30–50 %",
+            "required": true,
+            "lower": 30,
+            "upper": 50
+          },
+          {
+            "key": "H2O2_BATH_TEMP",
+            "label": "Suhu H2O2 Bath",
+            "type": "number",
+            "unit": "°C",
+            "hint": "82–95°C",
+            "required": true,
+            "lower": 82,
+            "upper": 95
+          },
+          {
+            "key": "SA_IH_POWER",
+            "label": "SA IH Power Prod",
+            "type": "number",
+            "unit": "W",
+            "hint": "600–850 W",
+            "required": true,
+            "lower": 600,
+            "upper": 850
+          },
+          {
+            "key": "LS_IH_POWER",
+            "label": "LS IH Power Prod",
+            "type": "number",
+            "unit": "W",
+            "hint": "300–800 W",
+            "required": true,
+            "lower": 300,
+            "upper": 800
+          },
+          {
+            "key": "TS_IH_POWER",
+            "label": "TS IH Power Prod",
+            "type": "number",
+            "unit": "W",
+            "hint": "1100–1600 W",
+            "required": true,
+            "lower": 1100,
+            "upper": 1600
+          },
+          {
+            "key": "ASEPTIC_CHAMBER_TOP",
+            "label": "Aseptic Chamber Top",
+            "type": "number",
+            "unit": "°C",
+            "hint": "7–110°C",
+            "required": true,
+            "lower": 7,
+            "upper": 110
+          },
+          {
+            "key": "STERILE_AIR_PRESSURE",
+            "label": "Sterile Air Pressure",
+            "type": "number",
+            "unit": "Bar",
+            "hint": "0.3–0.5 Bar",
+            "required": true,
+            "lower": 0.3,
+            "upper": 0.5
+          },
+          {
+            "key": "WATER_H2O2_HEATING",
+            "label": "Water, H2O2 Heating",
+            "type": "number",
+            "unit": "Bar",
+            "hint": "1.5–2 Bar",
+            "required": true,
+            "lower": 1.5,
+            "upper": 2
+          },
+          {
+            "key": "PENDULUM_PRESSURE",
+            "label": "Pendulum Pressure",
+            "type": "number",
+            "unit": "Bar",
+            "hint": "2.5–5 Bar",
+            "required": true,
+            "lower": 2.5,
+            "upper": 5
+          },
+          {
+            "key": "COOLING_WATER_SYSTEM",
+            "label": "Cooling Water System",
+            "type": "number",
+            "unit": "Bar",
+            "hint": "Target 2 Bar",
+            "required": true,
+            "lower": "",
+            "upper": ""
+          },
+          {
+            "key": "SA_WATER_FLOW",
+            "label": "SA Water Flow",
+            "type": "number",
+            "unit": "L/min",
+            "hint": "Target 1.5 L/min",
+            "required": true,
+            "lower": "",
+            "upper": ""
+          },
+          {
+            "key": "LS_WATER_FLOW",
+            "label": "LS Water Flow",
+            "type": "number",
+            "unit": "L/min",
+            "hint": "Target 2.0 L/min",
+            "required": true,
+            "lower": "",
+            "upper": ""
+          },
+          {
+            "key": "TS_LEFT_WATER_FLOW",
+            "label": "TS Left Water Flow",
+            "type": "number",
+            "unit": "L/min",
+            "hint": "Target 2.0 L/min",
+            "required": true,
+            "lower": "",
+            "upper": ""
+          },
+          {
+            "key": "TS_RIGHT_WATER_FLOW",
+            "label": "TS Right Water Flow",
+            "type": "number",
+            "unit": "L/min",
+            "hint": "Target 2.0 L/min",
+            "required": true,
+            "lower": "",
+            "upper": ""
+          },
+          {
+            "key": "FINAL_FOLDER_FLOW",
+            "label": "Final Folder",
+            "type": "number",
+            "unit": "L/min",
+            "hint": "Target 2.0 L/min",
+            "required": true,
+            "lower": "",
+            "upper": ""
+          },
+          {
+            "key": "DEIONIZING_CIRCUIT",
+            "label": "De-ionizing Circuit",
+            "type": "number",
+            "unit": "L/min",
+            "hint": "Target 1.5 L/min",
+            "required": true,
+            "lower": "",
+            "upper": ""
+          },
+          {
+            "key": "TUBE_SPRINKLER",
+            "label": "Tube Sprinkler",
+            "type": "select",
+            "unit": "",
+            "hint": "Optimum flow",
+            "required": true,
+            "lower": "",
+            "upper": "",
+            "options": [
+              "",
+              "V",
+              "X",
+              "="
+            ],
+            "labels": {
+              "V": "OK",
+              "X": "Tidak OK",
+              "=": "Catatan"
+            }
+          },
+          {
+            "key": "FFU_FLUSHING",
+            "label": "FFU Flushing",
+            "type": "select",
+            "unit": "",
+            "hint": "Optimum flow",
+            "required": true,
+            "lower": "",
+            "upper": "",
+            "options": [
+              "",
+              "V",
+              "X",
+              "="
+            ],
+            "labels": {
+              "V": "OK",
+              "X": "Tidak OK",
+              "=": "Catatan"
+            }
+          }
+        ]
+      },
+      {
+        "id": "paper",
+        "title": "Penggunaan paper",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "time",
+            "label": "Waktu",
+            "type": "time"
+          },
+          {
+            "key": "internal_lot",
+            "label": "Lot internal",
+            "type": "text"
+          },
+          {
+            "key": "reel",
+            "label": "Nomor reel",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "id": "strip",
+        "title": "Penggunaan strip",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "time",
+            "label": "Waktu",
+            "type": "time"
+          },
+          {
+            "key": "internal_lot",
+            "label": "Lot internal",
+            "type": "text"
+          },
+          {
+            "key": "reel",
+            "label": "Nomor reel",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "id": "foreman",
+        "title": "Kontrol dua jam pengawas",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "period",
+            "label": "Periode pemeriksaan",
+            "type": "text"
+          },
+          {
+            "key": "note",
+            "label": "Catatan pengawas",
+            "type": "text"
+          }
+        ],
+        "supervisor": true
+      }
+    ]
+  },
+  {
+    "id": "FILL_VOLUME",
+    "title": "Volume Control",
+    "area": "Filling",
+    "formNo": "F.U.F.024",
+    "rev": "2",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal produksi",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Lot",
+        "type": "text"
+      },
+      {
+        "key": "operator",
+        "label": "Nama operator",
+        "type": "text"
+      },
+      {
+        "key": "supervisor",
+        "label": "Nama pengawas",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "hour",
+        "title": "Posisi 10 jaw per jam",
+        "kind": "hourly",
+        "fields": [
+          {
+            "key": "jaw_1",
+            "label": "Jaw 1",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          },
+          {
+            "key": "jaw_2",
+            "label": "Jaw 2",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          },
+          {
+            "key": "jaw_3",
+            "label": "Jaw 3",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          },
+          {
+            "key": "jaw_4",
+            "label": "Jaw 4",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          },
+          {
+            "key": "jaw_5",
+            "label": "Jaw 5",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          },
+          {
+            "key": "jaw_6",
+            "label": "Jaw 6",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          },
+          {
+            "key": "jaw_7",
+            "label": "Jaw 7",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          },
+          {
+            "key": "jaw_8",
+            "label": "Jaw 8",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          },
+          {
+            "key": "jaw_9",
+            "label": "Jaw 9",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          },
+          {
+            "key": "jaw_10",
+            "label": "Jaw 10",
+            "type": "select",
+            "options": [
+              "",
+              "-4",
+              "-3",
+              "-2",
+              "-1",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "required": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "FILL_PACK",
+    "title": "Pack Integrity",
+    "area": "Filling",
+    "formNo": "F.U.F.019.A",
+    "rev": "03",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal produksi",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Lot",
+        "type": "text"
+      },
+      {
+        "key": "operator",
+        "label": "Nama operator",
+        "type": "text"
+      },
+      {
+        "key": "supervisor",
+        "label": "Nama pengawas",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "inspection",
+        "title": "Pengecekan kemasan",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "Time",
+            "label": "Waktu Pengecekan",
+            "type": "time",
+            "required": true
+          },
+          {
+            "key": "Trigger",
+            "label": "Trigger",
+            "type": "select",
+            "options": [
+              "MANUAL",
+              "START",
+              "PAPER_SPLICE",
+              "RESTART",
+              "STRIP_SPLICE"
+            ]
+          },
+          {
+            "key": "eva15",
+            "label": "Eva. 15 pak / Start / Material Paper Splice",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "eva3",
+            "label": "Eva. 3 / Restart / Strip Splice",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "weightRough",
+            "label": "Berat — Rough",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "tsRough",
+            "label": "TS Rough",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "weightAccurate",
+            "label": "Berat — Accurate",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "tsAccurate",
+            "label": "TS Accurate",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "productionCode",
+            "label": "Kode Produksi",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "shapeDesign",
+            "label": "Shape & Design",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "flapSealing",
+            "label": "Flap Sealing",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "creaseLine",
+            "label": "Crease Line",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "overlap",
+            "label": "Overlap",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "paperSurface",
+            "label": "Permukaan Kertas",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "lsSaInjection",
+            "label": "LS / SA / Suntikan",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "lsTearDown",
+            "label": "LS Tear Down",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "splicingPack",
+            "label": "Splicing Pack",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "colorTaste",
+            "label": "Warna & Rasa",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "foreignObject",
+            "label": "Benda Asing",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "foremanControl",
+            "label": "Kontrol Foreman",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "=",
+              "X"
+            ]
+          },
+          {
+            "key": "Note",
+            "label": "Catatan",
+            "type": "textarea"
+          }
+        ]
+      },
+      {
+        "id": "equipment",
+        "title": "Ketersediaan alat",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "DC_MICRO_AMPERE",
+            "label": "DC Micro Ampere Meter",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "INJECTION",
+            "label": "Suntikan / Injection",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "RED_DYE",
+            "label": "Red Dye",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "CUTTER",
+            "label": "Gunting / Cutter",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "TS_LIGHTING",
+            "label": "TS Lighting",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "POLARISATION_FILTER",
+            "label": "Polarisation Filter",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "MAGNIFIER",
+            "label": "Magnifier Glass",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "SALT_SOLUTION_TUB",
+            "label": "Bak Larutan Garam",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "PEROXIDE_PAPER",
+            "label": "Kertas Peroxide",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "MEASURING_GLASS",
+            "label": "Gelas Ukur",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "PRODUCT_TUB",
+            "label": "Bak Tempat Produk",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "ELECTRONIC_WEIGHTING",
+            "label": "Electronic Weighting",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "STRETCH_PLIERS",
+            "label": "Stretch pliers",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          },
+          {
+            "key": "TAB_TEMPLATE",
+            "label": "Tab Template",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ],
+            "labels": {
+              "V": "Selesai / tersedia",
+              "X": "Tidak selesai / tidak tersedia"
+            },
+            "required": true
+          }
+        ],
+        "dailyLock": true
+      }
+    ]
+  },
+  {
+    "id": "FILL_EVENT",
+    "title": "Laporan Kejadian Produksi",
+    "area": "Filling",
+    "formNo": "F.U.G.001",
+    "rev": "5",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal produksi",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Lot",
+        "type": "text"
+      },
+      {
+        "key": "operator",
+        "label": "Nama operator",
+        "type": "text"
+      },
+      {
+        "key": "supervisor",
+        "label": "Nama pengawas",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "technical",
+        "title": "Problem Technical",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "Stop",
+            "label": "Stop",
+            "type": "time",
+            "required": true
+          },
+          {
+            "key": "Start",
+            "label": "Start",
+            "type": "time",
+            "required": true
+          },
+          {
+            "key": "Duration",
+            "label": "Total",
+            "type": "text",
+            "computed": true
+          },
+          {
+            "key": "Code",
+            "label": "Kode",
+            "type": "select",
+            "options": [
+              "",
+              "IDM",
+              "INV",
+              "TPMS",
+              "CBMS",
+              "WEEKLY",
+              "ELC",
+              "RM",
+              "MTR",
+              "PRS",
+              "STDL",
+              "AT",
+              "SM",
+              "BM",
+              "PM",
+              "AM",
+              "CM",
+              "OPR",
+              "CP",
+              "PRH",
+              "CIP",
+              "NP",
+              "PLN",
+              "SSE",
+              "UDC",
+              "FM",
+              "CIPR",
+              "CIPS",
+              "GRL",
+              "WWTP",
+              "GLUE",
+              "SSD"
+            ],
+            "required": true,
+            "labels": {
+              "IDM": "Line Idle Time",
+              "INV": "Investigation of Unsterile",
+              "TPMS": "TPMS",
+              "CBMS": "CBMS",
+              "WEEKLY": "Weekly Care",
+              "ELC": "Power Supply Internal",
+              "RM": "Robotic Area",
+              "MTR": "RM-PM Supply",
+              "PRS": "Menunggu Masakan",
+              "STDL": "Sterilizer",
+              "AT": "Area AT",
+              "SM": "Straw MC Area",
+              "BM": "Box MC Area",
+              "PM": "Printing Code MC",
+              "AM": "Accumulator Area",
+              "CM": "Conveyor Area",
+              "OPR": "Ketersediaan Man Power",
+              "CP": "Change Product",
+              "PRH": "Preheating",
+              "CIP": "CIP",
+              "NP": "No Problem",
+              "PLN": "Power Supply PLN",
+              "SSE": "System / RFID Error",
+              "UDC": "Undocumented",
+              "FM": "Filling Machine Area",
+              "CIPR": "CIPR",
+              "CIPS": "CIPS",
+              "GRL": "GRL",
+              "WWTP": "WWTP",
+              "GLUE": "Glue Mesin",
+              "SSD": "Short Stop Downtime"
+            }
+          },
+          {
+            "key": "Desc",
+            "label": "Keterangan Masalah",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "key": "Action",
+            "label": "Corrective Action",
+            "type": "textarea"
+          },
+          {
+            "key": "class",
+            "label": "Jenis downtime",
+            "type": "select",
+            "options": [
+              "",
+              "Planned",
+              "Unplanned"
+            ],
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "quality",
+        "title": "Quality Issue",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "Stop",
+            "label": "Stop",
+            "type": "time",
+            "required": true
+          },
+          {
+            "key": "Start",
+            "label": "Start",
+            "type": "time",
+            "required": true
+          },
+          {
+            "key": "Duration",
+            "label": "Total",
+            "type": "text",
+            "computed": true
+          },
+          {
+            "key": "Code",
+            "label": "Kode",
+            "type": "select",
+            "options": [
+              "",
+              "AM",
+              "BM",
+              "SM",
+              "RM",
+              "GM",
+              "PM",
+              "CM",
+              "MTR"
+            ],
+            "required": true,
+            "labels": {
+              "AM": "AM",
+              "BM": "BM",
+              "SM": "SM",
+              "RM": "RM",
+              "GM": "GM",
+              "PM": "PM",
+              "CM": "CM",
+              "MTR": "MTR"
+            }
+          },
+          {
+            "key": "Desc",
+            "label": "Keterangan Masalah",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "key": "Action",
+            "label": "Corrective Action",
+            "type": "textarea"
+          },
+          {
+            "key": "class",
+            "label": "Jenis downtime",
+            "type": "select",
+            "options": [
+              "",
+              "Planned",
+              "Unplanned"
+            ],
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "short_stop",
+        "title": "Short Stop Downtime (menit)",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "FM",
+            "label": "Filling Machine",
+            "type": "number",
+            "min": 0,
+            "max": 1440
+          },
+          {
+            "key": "AM",
+            "label": "Accumulator Machine",
+            "type": "number",
+            "min": 0,
+            "max": 1440
+          },
+          {
+            "key": "BM",
+            "label": "Box Machine",
+            "type": "number",
+            "min": 0,
+            "max": 1440
+          },
+          {
+            "key": "SM",
+            "label": "Straw Machine",
+            "type": "number",
+            "min": 0,
+            "max": 1440
+          },
+          {
+            "key": "RM",
+            "label": "Robotic Machine",
+            "type": "number",
+            "min": 0,
+            "max": 1440
+          },
+          {
+            "key": "GM",
+            "label": "Glue Machine",
+            "type": "number",
+            "min": 0,
+            "max": 1440
+          },
+          {
+            "key": "PM",
+            "label": "Printing Code Machine",
+            "type": "number",
+            "min": 0,
+            "max": 1440
+          },
+          {
+            "key": "CM",
+            "label": "Conveyor Machine",
+            "type": "number",
+            "min": 0,
+            "max": 1440
+          },
+          {
+            "key": "MTR",
+            "label": "RM-PM Supply",
+            "type": "number",
+            "min": 0,
+            "max": 1440
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "FILL_CIP",
+    "title": "CIP Filling Machine",
+    "area": "Filling",
+    "formNo": "F.U.F.013",
+    "rev": "5",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal produksi",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Lot",
+        "type": "text"
+      },
+      {
+        "key": "operator",
+        "label": "Nama operator",
+        "type": "text"
+      },
+      {
+        "key": "supervisor",
+        "label": "Nama pengawas",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "cip",
+        "title": "Pelaksanaan CIP",
+        "kind": "repeater",
+        "fields": [
+          {
+            "key": "Date",
+            "label": "Tanggal",
+            "type": "date",
+            "required": true
+          },
+          {
+            "key": "Product",
+            "label": "Produk sebelum CIP",
+            "type": "text"
+          },
+          {
+            "key": "Machine",
+            "label": "No FM",
+            "type": "text",
+            "computed": true
+          },
+          {
+            "key": "Type",
+            "label": "Jenis CIP",
+            "type": "select",
+            "options": [
+              "",
+              "FC",
+              "IC"
+            ],
+            "required": true
+          },
+          {
+            "key": "Leak",
+            "label": "Cek leaking pipa",
+            "type": "select",
+            "options": [
+              "",
+              "V",
+              "X"
+            ]
+          },
+          {
+            "key": "Start",
+            "label": "Waktu mulai",
+            "type": "time",
+            "required": true
+          },
+          {
+            "key": "Stop",
+            "label": "Waktu selesai",
+            "type": "time",
+            "required": true
+          },
+          {
+            "key": "Total",
+            "label": "Total menit",
+            "type": "text",
+            "computed": true
+          },
+          {
+            "key": "CausticFlow",
+            "label": "Caustic · Flow (Lt/hr)",
+            "type": "number"
+          },
+          {
+            "key": "CausticConc",
+            "label": "Caustic · Konsentrasi",
+            "type": "number"
+          },
+          {
+            "key": "CausticTemp",
+            "label": "Caustic · Suhu (°C)",
+            "type": "number"
+          },
+          {
+            "key": "CausticTime",
+            "label": "Caustic · Waktu (menit)",
+            "type": "number"
+          },
+          {
+            "key": "AcidFlow",
+            "label": "Acid · Flow (Lt/hr)",
+            "type": "number"
+          },
+          {
+            "key": "AcidConc",
+            "label": "Acid · Konsentrasi",
+            "type": "number"
+          },
+          {
+            "key": "AcidTemp",
+            "label": "Acid · Suhu (°C)",
+            "type": "number"
+          },
+          {
+            "key": "AcidTime",
+            "label": "Acid · Waktu (menit)",
+            "type": "number"
+          },
+          {
+            "key": "Conductivity",
+            "label": "Conductivity (mS)",
+            "type": "number"
+          },
+          {
+            "key": "Ph",
+            "label": "pH",
+            "type": "number"
+          },
+          {
+            "key": "Operator",
+            "label": "Operator",
+            "type": "text"
+          },
+          {
+            "key": "Supervisor",
+            "label": "Pengawas",
+            "type": "text"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PRODUCTION_TOTAL",
+    "title": "Total Produksi",
+    "area": "Rekap",
+    "formNo": "Rekap",
+    "rev": "",
+    "meta": [
+      {
+        "key": "date",
+        "label": "Tanggal produksi",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "shift",
+        "label": "Shift",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3"
+        ],
+        "required": true
+      },
+      {
+        "key": "unit",
+        "label": "Nomor mesin",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "Produk",
+        "type": "text"
+      },
+      {
+        "key": "sku",
+        "label": "SKU",
+        "type": "text"
+      },
+      {
+        "key": "batch",
+        "label": "Batch",
+        "type": "text"
+      },
+      {
+        "key": "lot",
+        "label": "Lot",
+        "type": "text"
+      },
+      {
+        "key": "operator",
+        "label": "Nama operator",
+        "type": "text"
+      },
+      {
+        "key": "supervisor",
+        "label": "Nama pengawas",
+        "type": "text"
+      }
+    ],
+    "sections": [
+      {
+        "id": "quantities",
+        "title": "Perolehan produksi (pak)",
+        "kind": "fields",
+        "fields": [
+          {
+            "key": "target",
+            "label": "Target",
+            "type": "integer",
+            "min": 0,
+            "max": 1000000000,
+            "required": true
+          },
+          {
+            "key": "actual",
+            "label": "Aktual",
+            "type": "integer",
+            "min": 0,
+            "max": 1000000000,
+            "required": true
+          },
+          {
+            "key": "good",
+            "label": "Produk baik",
+            "type": "integer",
+            "min": 0,
+            "max": 1000000000,
+            "required": true
+          },
+          {
+            "key": "reject",
+            "label": "Reject",
+            "type": "integer",
+            "min": 0,
+            "max": 1000000000,
+            "required": true
+          },
+          {
+            "key": "start",
+            "label": "Mulai",
+            "type": "time"
+          },
+          {
+            "key": "end",
+            "label": "Selesai",
+            "type": "time"
+          },
+          {
+            "key": "notes",
+            "label": "Catatan",
+            "type": "textarea"
+          }
+        ]
+      }
+    ]
+  }
+]

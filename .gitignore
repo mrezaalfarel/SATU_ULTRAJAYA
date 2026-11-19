@@ -1,0 +1,11 @@
+node_modules/
+/dist/
+/01_UPLOAD_KE_CLOUDFLARE.zip
+/.satu-build-*/
+__pycache__/
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+.wrangler/
+*.dump

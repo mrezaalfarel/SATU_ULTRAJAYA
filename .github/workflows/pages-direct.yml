@@ -1,0 +1,31 @@
+name: Pages Direct Upload
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: satu-pages-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: vars.PAGES_DIRECT_UPLOAD == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --include=dev
+      - run: python3 src/build.py
+      - run: npm test
+      - name: Publish verified assets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PAGES_PRODUCTION_BRANCH: ${{ vars.CF_PAGES_PRODUCTION_BRANCH || 'main' }}
+          CF_PAGES_PROJECT: ${{ vars.CF_PAGES_PROJECT }}
+        run: npx --yes wrangler@4.76.0 pages deploy dist --project-name "$CF_PAGES_PROJECT" --branch "$CF_PAGES_PRODUCTION_BRANCH"

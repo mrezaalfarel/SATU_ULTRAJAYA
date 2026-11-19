@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/pilot.mjs && node tests/print.mjs && node tests/live.mjs",
+    "test": "node tests/pilot.mjs && node tests/print.mjs && node tests/live.mjs && node tests/worker.mjs && node tests/assignments.mjs && node tests/forms.mjs",
     "test:size": "node tests/size.mjs",
-    "test:browser": "node tests/browser.mjs"
+    "test:browser": "node tests/browser.mjs",
+    "pretest:browser": "python3 src/build.py"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.4.1"

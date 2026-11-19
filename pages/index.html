@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#102c40">
+<title>SATU ULTRAJAYA · Laporan produksi</title><link rel="icon" href="/icon.svg"><link rel="stylesheet" href="/ui.css"><script type="module" src="/app.js"></script>
+</head><body><a class="skip" href="#main">Lewati ke isi</a>
+<section id="login" class="signin" hidden>
+<div class="intro"><div class="wordmark"><i class="brandmark" aria-hidden="true"></i><span>SATU <b>ULTRAJAYA</b></span></div>
+<div class="intro-title"><p class="eyebrow">Operasional produksi</p><h1>Laporan<br> produksi.</h1><p>Pencatatan, penelusuran batch, dan persetujuan laporan dalam satu tempat.</p></div>
+<div class="shiftline" aria-hidden="true"><span>Shift 1</span><span>Shift 2</span><span>Shift 3</span></div></div>
+<main class="loginbox"><form id="loginForm"><p class="eyebrow">Akses karyawan</p><h2>Masuk ke SATU</h2>
+<p class="muted">Gunakan ID yang telah didaftarkan admin. Izinkan akses lokasi saat Anda masuk dari area pilot.</p>
+<label>ID karyawan<input name="employee" autocomplete="username" autocapitalize="none" spellcheck="false" required maxlength="40" placeholder="ID karyawan"></label>
+<label>Kata sandi<span class="passfield"><input name="password" type="password" autocomplete="current-password" required maxlength="256"><button type="button" id="showPass" class="text-btn">Lihat</button></span></label>
+<p id="loginStatus" role="status" class="message" hidden></p><button id="enter" class="primary large">Verifikasi lokasi &amp; masuk <span aria-hidden="true">→</span></button>
+</form></main></section>
+<div id="shell" class="shell" hidden><aside id="sidebar"><div class="wordmark"><i class="brandmark" aria-hidden="true"></i><span>SATU <b>ULTRAJAYA</b></span></div>
+<p class="nav-caption">Ruang kerja</p><nav id="nav" aria-label="Navigasi aplikasi"></nav>
+<div class="me"><span id="monogram"></span><div><strong id="personName"></strong><small id="personRole"></small></div></div><button id="logout" class="exit-btn">Keluar dari akun</button></aside>
+<div class="workspace"><header class="topbar"><button class="outline iconbtn" id="menu" aria-label="Buka atau tutup navigasi" aria-controls="sidebar" aria-expanded="true">☰</button><span id="breadcrumb">Operasional</span><div class="plant"><i></i><span id="line"></span></div></header>
+<main id="main" tabindex="-1" aria-live="off"><p class="muted">Memuat ruang kerja…</p></main></div></div>
+<div id="flash" role="status" hidden></div><div id="printRoot"></div><noscript>Aktifkan JavaScript untuk membuka laporan produksi.</noscript></body></html>
