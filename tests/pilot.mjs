@@ -77,6 +77,9 @@ try{
   const read=await expect('module',{id:module.id},operator,200);assert.equal('correct' in read.questions[0],false);
   await expect('visit',{id:module.id},operator,200);await expect('quiz',{id:module.id,answers:[1]},operator,200);await expect('finish',{id:module.id},operator,422);assert.equal((await expect('quiz',{id:module.id,answers:[0]},operator,200)).score,100);
   await expect('heartbeat',{id:module.id},operator,200);await expect('finish',{id:module.id},operator,200);assert.ok((await expect('leaderboard',{},operator,200)).length);
+  assert.equal((await expect('leaderboard',{sort:'points'},operator,200))[0].points,100);
+  assert.ok((await expect('modules',{category:'Mini Quiz'},operator,200)).some(x=>x.id===module.id));
+  assert.ok(!(await expect('modules',{category:'Tutorial'},operator,200)).some(x=>x.id===module.id));
   assert.equal((await expect('ask',{q:'pengujian'},operator,200)).docs.length,1);
   await expect('module_save',{...module,revision:'2'},admin,200);
   await expect('finish',{id:module.id},operator,422);

@@ -24,7 +24,7 @@ const modelCalls = [];
 f.env.AI = {
  async run(model, input) {
   const photo = Array.isArray(input.image) && input.image.length > 0;
-  modelCalls.push({model, photo});
+  modelCalls.push({model, photo, context:input.messages?.at(-1)?.content});
   return {response:photo
    ? JSON.stringify({classification:'abnormal',observation:'Tanda latihan pada foto sintetis.',reference:'[1]'})
    : 'Penjelasan berdasarkan kartu pemeriksaan sintetis [1].'};
@@ -93,7 +93,7 @@ try{
  assert.match(await ev("document.querySelector('#loginStatus').textContent"), /area|lokasi|radius/i);
  await send('Emulation.setGeolocationOverride',{latitude:-6.867190,longitude:107.513711,accuracy:4});
  await ev("loginForm.employee.value='mgmt-uji';loginForm.password.value='Khusus-pengujian-01';loginForm.requestSubmit()");await wait("!document.querySelector('#shell').hidden && !!document.querySelector('#queue')");
- await ev("document.querySelector('#newRpt').click()");await wait("!!document.querySelector('[data-new=PRODUCTION_TOTAL]')");await ev("document.querySelector('[data-new=PRODUCTION_TOTAL]').click()");await wait("!!document.querySelector('[data-meta=unit]') && !!document.querySelector('[data-key=good]')");
+ await ev("document.querySelector('#newRpt').click()");await wait("!!document.querySelector('[data-section=Supervisor]')");await ev("document.querySelector('[data-section=Supervisor]').click()");await wait("!!document.querySelector('[data-new=PRODUCTION_TOTAL]')");await ev("document.querySelector('[data-new=PRODUCTION_TOTAL]').click()");await wait("!!document.querySelector('[data-meta=unit]') && !!document.querySelector('[data-key=good]')");
  interruptNextSave = true;
  await ev("for(const [s,v] of Object.entries({'[data-meta=unit]':'FM-UJI','[data-meta=batch]':'B-BROWSER','[data-meta=sku]':'SKU-UJI','[data-meta=lot]':'LOT-BROWSER','[data-key=good]':'95','[data-key=reject]':'5','[data-key=actual]':'100','[data-key=target]':'120'})){const el=document.querySelector(s);el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));}document.querySelector('#save').click()");
  await wait("/Jaringan terputus|Respons API Cloudflare tidak terbaca/.test(document.querySelector('#flash')?.textContent)");
@@ -188,10 +188,21 @@ try{
  await wait("document.querySelector('#score')?.textContent.includes('100/100')");
  await click('#finish');
  await wait("document.querySelector('#main .book')?.innerText.includes('Selesai')");
+ await fill('#rankMetric','points');
+ await wait("document.querySelector('.learning-rank')?.innerText.includes('100 poin')");
+ await ev(`window.SpeechRecognition=class {start(){setTimeout(()=>{this.onresult({resultIndex:0,results:[[{transcript:'Suara uji'}]]});this.onend();},5);}stop(){}abort(){}}`);
  await goMenu('ask');
+ await click('#mic');
+ await wait("document.querySelector('[name=q]').value==='Suara uji'");
  await fill('#main [name=q]', 'Bagaimana pemeriksaan kemasan pada kartu sintetis?');
  await click('[name=send]');
  await wait("document.querySelector('#conversation')?.innerText.includes('Manual pelatihan uji')");
+ await click('#attachToggle');
+ await ev(`{const f=document.querySelector('[name=document]'), dt=new DataTransfer();dt.items.add(new File(['Latihan referensi file'], 'contoh.txt', {type:'text/plain'}));f.files=dt.files;f.dispatchEvent(new Event('change'));}`);
+ await fill('#main [name=q]','Ringkas lampiran uji.');
+ await click('[name=send]');
+ await wait("document.querySelector('#conversation')?.innerText.includes('contoh.txt')");
+ assert.match(modelCalls.at(-1).context,/Latihan referensi file/);
  const beforeCamera=modelCalls.length;
  await click('#cameraOpen');
  await wait("document.querySelector('#cameraPreview')?.videoWidth > 0");
@@ -206,7 +217,8 @@ try{
  await click('#conversation [data-doc]');
  await wait("document.querySelector('#main h1')?.textContent==='Manual pelatihan uji'");
  console.log('OK Chrome · AI chat, pengambilan foto melalui perangkat kamera uji, kirim foto dan tampilkan penilaian simulasi');
- await goMenu('reports');
+ if(!await ev("document.querySelector('.report-nav').open"))await click('.report-nav summary');
+ await click('[data-area="Filling Machine"]');
  await wait("!!document.querySelector('[data-new=FILL_EVENT]')");
  assert.equal(await ev("!!document.querySelector('[data-new=PRODUCTION_TOTAL]')"),false);
  await click('[data-new=FILL_EVENT]');
@@ -220,7 +232,8 @@ try{
  await wait("!!document.querySelector('.modebar .PENDING')");
  await openLogin('fm-browser');
  assert.equal(await ev("!!document.querySelector('#newRpt')"),false);
- await goMenu('reports');
+ if(!await ev("document.querySelector('.report-nav').open"))await click('.report-nav summary');
+ await click('[data-area="Filling Machine"]');
  await wait("!!document.querySelector('[data-browse=FILL_EVENT]')");
  assert.equal(await ev("!!document.querySelector('[data-new]')"),false);
  await goMenu('dashboard');
@@ -236,7 +249,8 @@ try{
  assert.deepEqual(errors,[]);
  await openLogin('op-baris');
  await wait("document.querySelector('#line select')?.value==='Filling 57'");
- await goMenu('reports');
+ if(!await ev("document.querySelector('.report-nav').open"))await click('.report-nav summary');
+ await click('[data-area="Filling Machine"]');
  await wait("!!document.querySelector('[data-new=FILL_EVENT]')");
  assert.equal(await ev("!!document.querySelector('[data-new=STERILIZER_GEA]')"),false);
  await ev("{const s=document.querySelector('#line select');s.value='Filling 58';s.dispatchEvent(new Event('change'));}");

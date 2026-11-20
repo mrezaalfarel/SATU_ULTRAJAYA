@@ -1,16 +1,36 @@
 import {app,api,go,esc,fmt,heading,onBtn,busy,toast,adminArea,applyPrefs,signedOut,language,drawNavigation,roleName} from '/app.js';
 const options=(values,selected)=>values.map(v=>'<option '+(v===selected?'selected':'')+'>'+esc(v)+'</option>').join('');
 const data=form=>Object.fromEntries(new FormData(form));
-const cat=['Instruksi Kerja','SOP','OPL','Book','Video'],roles=['operator','pengawas','foreman','qc','qa','ci','management','admin'];
+const categories={'Instruksi Kerja':'Instruksi Kerja',SOP:'Standar Operasional Prosedur',OPL:'One Point Lesson',Tutorial:'Tutorial','Mini Quiz':'Mini Quiz'};
+const roles=['operator','pengawas','foreman','qc','qa','ci','management','admin'];
+const categoryName=value=>categories[value]||(['Book','Video'].includes(value)?'Tutorial':value);
 async function education(host,args){
  if(args.edit)return moduleEditor(host,args.id);
  if(args.id)return lesson(host,args.id);
- const [items,rank]=await Promise.all([api('modules'),api('leaderboard')]);let next=items.length>50;const seen=items.slice(0,50);
- const draw=()=>{
- host.innerHTML=heading('Education Corner','Pelajari instruksi kerja dan uji pemahaman melalui kuis.','Pembelajaran',adminArea()?'<button class="primary" id="add">+ Tambah modul</button>':'')+
- `<div class="columns"><section class="panel"><h3>Materi belajar</h3>${seen.map(m=>`<div class="book"><div><small>${esc(m.category)} · Rev ${esc(m.revision)}</small><strong>${esc(m.title)}</strong><small>${!m.active?'Diarsipkan':m.completed?'Selesai':m.seconds?fmt(Math.floor(m.seconds/60))+' menit aktif':'Belum selesai'}</small></div><div class="row">${m.active?'<button class="outline" data-open="'+m.id+'">Buka</button>':''}${adminArea()?'<button class="text-btn" data-edit="'+m.id+'">Edit</button>':''}</div></div>`).join('')||'<p class="empty">Belum ada modul. Materi yang diterbitkan pengelola akan tampil di sini.</p>'}${next?'<button id="more" class="outline">Muat berikutnya</button>':''}</section><section class="panel"><h3>Leaderboard belajar</h3>${rank.map((x,i)=>`<div class="book"><span>${i+1}. ${esc(x.name)}<small>${fmt(x.visits)} kunjungan · ${fmt(x.completed)} modul selesai</small></span><strong>${fmt(Math.floor(x.seconds/60))} mnt</strong></div>`).join('')||'<p class="muted">Belum ada aktivitas belajar.</p>'}</section></div>`;
- onBtn(host,'#add',()=>go('education',{edit:true}));onBtn(host,'[data-open]',b=>go('education',{id:b.dataset.open}));onBtn(host,'[data-edit]',b=>go('education',{edit:true,id:b.dataset.edit}));onBtn(host,'#more',async()=>{const last=seen.at(-1),list=await api('modules',{after:last.title,after_id:last.id});seen.push(...list.slice(0,50));next=list.length>50;draw();});
- };draw();
+ const category=args.category||'',sort=args.sort||'visits';
+ const [items,rank]=await Promise.all([api('modules',{category}),api('leaderboard',{sort})]);
+ if(!host.isConnected)return;
+ let next=items.length>50;
+ const seen=items.slice(0,50);
+ function draw(){
+  const metrics={visits:'Jumlah akses',seconds:'Waktu baca',points:'Poin kuis'};
+  const headingAction=adminArea()?'<button class="primary" id="add">+ Tambah modul</button>':'';
+  host.innerHTML=heading('Education Corner','Pilih materi atau lanjutkan latihan kuis.','Pembelajaran',headingAction)+
+   '<div class="study-tabs" aria-label="Kategori modul">'+Object.entries({'':'Semua',...categories}).map(([key,label])=>`<button data-category="${esc(key)}" aria-pressed="${category===key}">${esc(label)}</button>`).join('')+'</div>'+
+   '<div class="study-layout"><section><h2 class="section-title">'+esc(categories[category]||'Semua modul')+'</h2><div class="portal-grid">'+seen.map(m=>`<article class="portal-card book"><small>${esc(categoryName(m.category))} · Rev ${esc(m.revision)}</small><strong>${esc(m.title)}</strong><small>${!m.active?'Diarsipkan':m.completed?'Selesai':m.seconds?fmt(Math.floor(m.seconds/60))+' menit aktif':'Belum selesai'}</small><div class="actions">${m.active?'<button class="outline" data-open="'+esc(m.id)+'">Buka</button>':''}${adminArea()?'<button class="text-btn" data-edit="'+esc(m.id)+'">Edit</button>':''}</div></article>`).join('')+'</div>'+
+   (seen.length?'':'<p class="empty">Belum ada modul dalam kategori ini.</p>')+(next?'<button id="more" class="outline">Muat berikutnya</button>':'')+'</section>'+
+   '<section class="panel learning-rank"><h2 class="section-title">Leaderboard belajar</h2><label>Urutkan berdasarkan<select id="rankMetric">'+Object.entries(metrics).map(([k,v])=>`<option value="${k}" ${sort===k?'selected':''}>${v}</option>`).join('')+'</select></label>'+
+   (sort==='points'?'<p class="muted">Jumlah nilai terbaik tiap kuis, maksimal 100 poin per modul.</p>':'')+
+   '<ol>'+rank.map(x=>`<li><strong>${esc(x.name)}</strong><span>${sort==='points'?fmt(x.points)+' poin':sort==='visits'?fmt(x.visits)+' akses':fmt(Math.floor(x.seconds/60))+' mnt '+fmt(x.seconds%60)+' dtk'}</span></li>`).join('')+'</ol>'+
+   (rank.length?'':'<p class="muted">Belum ada aktivitas untuk ditampilkan.</p>')+'</section></div>';
+  host.querySelector('#rankMetric').onchange=e=>go('education',{category,sort:e.target.value});
+  onBtn(host,'[data-category]',b=>go('education',{category:b.dataset.category,sort}));
+  onBtn(host,'#add',()=>go('education',{edit:true}));
+  onBtn(host,'[data-open]',b=>go('education',{id:b.dataset.open}));
+  onBtn(host,'[data-edit]',b=>go('education',{edit:true,id:b.dataset.edit}));
+  onBtn(host,'#more',async()=>{const last=seen.at(-1),list=await api('modules',{category,after:last.title,after_id:last.id});seen.push(...list.slice(0,50));next=list.length>50;draw();});
+ }
+ draw();
 }
 async function lesson(host,id){
  const m=await api('module',{id});await api('visit',{id});if(!host.isConnected)return;
@@ -20,7 +40,32 @@ async function lesson(host,id){
  '<div class="actions"><button id="finish" class="outline">Tandai selesai</button></div>';
  onBtn(host,'#back',()=>go('education'));onBtn(host,'#finish',async()=>{await api('finish',{id,revision:m.revision,edition:m.edition});toast('Modul ditandai selesai.');await go('education');});
  const f=host.querySelector('form');if(f)f.onsubmit=busy(f.querySelector('button'),async()=>{const q=data(f);const x=await api('quiz',{id,revision:m.revision,edition:m.edition,answers:m.questions.map((_,i)=>Number(q['q'+i]))});host.querySelector('#score').textContent='Nilai '+x.score+'/100 · '+(x.passed?'Lulus':'Pelajari kembali materi');});
- let running=false;const tm=setInterval(async()=>{if(!document.hidden&&!running&&document.hasFocus()){running=true;try{await api('heartbeat',{id});}catch{}finally{running=false;}}},30000);app.cleanup=()=>clearInterval(tm);
+ let started=null,accrued=0;
+ function recordTime(){
+  const now=performance.now();
+  if(started!==null)accrued+=now-started;
+  started=!document.hidden&&document.hasFocus()?now:null;
+ }
+ function flushTime(){
+  recordTime();
+  const seconds=Math.min(40,Math.floor(accrued/1000));
+  if(seconds<1)return;
+  accrued-=seconds*1000;
+  api('heartbeat',{id,seconds}).catch(()=>{});
+ }
+ recordTime();
+ const tm=setInterval(flushTime,30000);
+ window.addEventListener('focus',recordTime);
+ window.addEventListener('blur',flushTime);
+ document.addEventListener('visibilitychange',flushTime);
+ app.cleanup=()=>{
+  clearInterval(tm);
+  window.removeEventListener('focus',recordTime);
+  window.removeEventListener('blur',flushTime);
+  document.removeEventListener('visibilitychange',flushTime);
+  if(app.person)flushTime();
+ };
+
 }
 function queryForm(q={}){
  return `<fieldset class="question"><legend>Pertanyaan</legend><label>Teks pertanyaan<input class="qt" maxlength="400" value="${esc(q.text)}" required></label><label>Pilihan jawaban · satu pilihan per baris<textarea class="qo" rows="3" required>${esc((q.options||[]).join('\n'))}</textarea></label><label>Nomor pilihan yang benar<input class="qc" type="number" min="1" max="5" required value="${(q.correct??0)+1}"></label><button type="button" class="text-btn rm">Hapus pertanyaan</button></fieldset>`;
@@ -28,7 +73,7 @@ function queryForm(q={}){
 async function moduleEditor(host,id){
  if(!adminArea())throw Error('Akses pengelola diperlukan.');
  const m=id?await api('module',{id,edit:true}):{id:crypto.randomUUID(),category:'SOP',active:true,revision:'01',questions:[]};
- host.innerHTML=heading(id?'Ubah modul':'Tambah modul','','Education Corner')+`<form class="panel stack"><div class="fields"><label>Judul<input name="title" required maxlength="140" value="${esc(m.title)}"></label><label>Kategori<select name="category">${options(cat,m.category)}</select></label><label>Revisi<input name="revision" maxlength="40" required value="${esc(m.revision)}"></label></div><label>Isi materi atau kutipan manual<textarea name="body" maxlength="60000" required rows="9">${esc(m.body)}</textarea></label><label>Lampiran PDF, JPG, PNG, atau MP4 (maks. 12 MiB)<input name="blob" type="file" accept=".pdf,.jpg,.jpeg,.png,.mp4"></label>${m.attachment?'<label class="inlinecheck"><input type="checkbox" name="remove">Lepas lampiran saat ini</label>':''}<label class="inlinecheck"><input type="checkbox" name="manual" ${m.manual?'checked':''}> Gunakan isi teks sebagai sumber manual di AI Corner</label><label class="inlinecheck"><input type="checkbox" name="active" ${m.active?'checked':''}> Terbitkan modul</label><div class="questions">${m.questions.map(queryForm).join('')}</div><button type="button" class="outline addq">+ Tambah pertanyaan</button><div class="actions"><button class="primary" type="submit">Simpan modul</button><button type="button" class="outline back">Kembali</button></div></form>`;
+ host.innerHTML=heading(id?'Ubah modul':'Tambah modul','','Education Corner')+`<form class="panel stack"><div class="fields"><label>Judul<input name="title" required maxlength="140" value="${esc(m.title)}"></label><label>Kategori<select name="category">${Object.entries(categories).map(([key,label])=>'<option value="'+esc(key)+'" '+(categoryName(key)===categoryName(m.category)?'selected':'')+'>'+esc(label)+'</option>').join('')}</select></label><label>Revisi<input name="revision" maxlength="40" required value="${esc(m.revision)}"></label></div><label>Isi materi atau kutipan manual<textarea name="body" maxlength="60000" required rows="9">${esc(m.body)}</textarea></label><label>Lampiran PDF, JPG, PNG, atau MP4 (maks. 12 MiB)<input name="blob" type="file" accept=".pdf,.jpg,.jpeg,.png,.mp4"></label>${m.attachment?'<label class="inlinecheck"><input type="checkbox" name="remove">Lepas lampiran saat ini</label>':''}<label class="inlinecheck"><input type="checkbox" name="manual" ${m.manual?'checked':''}> Gunakan isi teks sebagai sumber manual di AI Corner</label><label class="inlinecheck"><input type="checkbox" name="active" ${m.active?'checked':''}> Terbitkan modul</label><div class="questions">${m.questions.map(queryForm).join('')}</div><button type="button" class="outline addq">+ Tambah pertanyaan</button><div class="actions"><button class="primary" type="submit">Simpan modul</button><button type="button" class="outline back">Kembali</button></div></form>`;
  if(!host.isConnected)return;
  let dirty=false,pending=null;app.isDirty=()=>dirty;const form=host.querySelector('form');form.oninput=()=>{dirty=true;};
  form.addEventListener('click',e=>{if(e.target.matches('.rm')){e.target.closest('.question').remove();dirty=true;}if(e.target.matches('.addq')){if(form.querySelectorAll('.question').length>=20)return toast('Maksimal 20 pertanyaan.');form.querySelector('.questions').insertAdjacentHTML('beforeend',queryForm());dirty=true;}});

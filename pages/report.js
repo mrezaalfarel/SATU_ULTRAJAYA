@@ -1,20 +1,19 @@
 import {exportFilteredReports} from '/export.js';
-import {app,api,go,esc,fmt,dateLabel,offset,tag,titleOf,heading,onBtn,busy,toast,mayReview,approvalOnly,adminArea,statusNames,askDialog,locale,releaseTemporaryDraft} from '/app.js';
+import {availableSections,app,api,go,esc,fmt,dateLabel,offset,tag,titleOf,heading,onBtn,busy,toast,mayReview,approvalOnly,adminArea,statusNames,askDialog,locale,releaseTemporaryDraft} from '/app.js';
 const opt=(v,label,selected)=>'<option value="'+esc(v)+'" '+(String(v)===String(selected)?'selected':'')+'>'+esc(label)+'</option>';
-function picker(host){
- const areas=new Map();
- for(const def of app.catalog){
-  if(def.id==='SUPERVISOR_DAILY'&&!adminArea())continue;
-  if(!areas.has(def.area))areas.set(def.area,[]);
-  areas.get(def.area).push(def);
+function picker(host,args){
+ const areas=availableSections(),forms=areas[args.area];
+ if(!forms){
+  host.innerHTML=heading('Laporan produksi','Pilih area kerja untuk melihat laporan yang tersedia.')+
+   '<div class="portal-grid">'+Object.keys(areas).map(area=>`<button class="portal-card" data-section="${esc(area)}"><strong>${esc(area)}</strong><small>${areas[area].length} laporan →</small></button>`).join('')+'</div>';
+  if(!Object.keys(areas).length)host.insertAdjacentHTML('beforeend','<p class="empty">Hubungi admin untuk mendapatkan penugasan area dan line.</p>');
+  onBtn(host,'[data-section]',b=>go('reports',{area:b.dataset.section}));return;
  }
- const reviewing=approvalOnly();
- host.innerHTML=heading('Laporan produksi',reviewing?'Pilih jenis laporan untuk meninjau kiriman di area kerja Anda.':'Pilih formulir untuk mencatat produksi.','Pencatatan')+
-  [...areas].map(([area,defs],i)=>`<details class="group" ${i===0?'open':''}><summary>${esc(area)} · ${defs.length} formulir</summary><div class="inner">${defs.map(d=>`<button class="report-link" ${reviewing?'data-browse':'data-new'}="${esc(d.id)}"><span><strong>${esc(d.title)}</strong><small>${esc(d.formNo)}${d.rev?' · Rev '+esc(d.rev):''}</small></span><span>→</span></button>`).join('')}</div></details>`).join('');
- if(!areas.size)host.insertAdjacentHTML('beforeend','<p class="empty">Belum ada penugasan laporan. Hubungi admin untuk mengatur area kerja dan line produksi.</p>');
- if(app.catalog.some(d=>d.id==='FILL_EVENT'))host.insertAdjacentHTML('beforeend','<details class="group"><summary>Downtime</summary><div class="inner"><button class="report-link" data-go="downtime"><span><strong>Laporan Downtime</strong><small>Durasi terencana dan tidak terencana per mesin dan shift</small></span><span>→</span></button></div></details>');
- onBtn(host,'[data-go="downtime"]',()=>go('downtime'));
- onBtn(host,'[data-new]',b=>go('edit',{type:b.dataset.new}));
+ host.innerHTML=heading(args.area,app.line,'Laporan produksi','<button class="outline" id="allAreas">Semua area</button>')+
+  '<div class="portal-grid">'+forms.map(d=>`<button class="portal-card" ${d.id==='downtime'?'data-summary':approvalOnly()?'data-browse':'data-new'}="${esc(d.id)}"><small>${esc(d.formNo||'Rekap shift')}</small><strong>${esc(d.title)}</strong><span>${d.id==='downtime'?'Lihat rekap':approvalOnly()?'Tinjau laporan':'Buka formulir'} →</span></button>`).join('')+'</div>';
+ onBtn(host,'#allAreas',()=>go('reports'));
+ onBtn(host,'[data-summary]',()=>go('downtime'));
+ onBtn(host,'[data-new]',b=>go('edit',{type:b.dataset.new,area:args.area}));
  onBtn(host,'[data-browse]',b=>go('trace',{type:b.dataset.browse,status:'PENDING'}));
 }
 async function downtime(host,args){
@@ -107,7 +106,7 @@ async function edit(host,args){
   def.sections.map(g=>`<details class="group" data-group="${g.id}" ${opened.has(g.id)?'open':''}><summary>${esc(g.title)} <small>· ${Object.keys(doc.sections[g.id]||{}).length} isian</small></summary><div class="inner"></div></details>`).join('')+
   (r?`<details class="group"><summary>Riwayat perubahan</summary><div class="inner">${(r.history||[]).map(h=>'<p><strong>v'+h.version+' · '+esc(historyLabels[h.action]||h.action)+'</strong> · '+esc(h.name)+' · '+esc(new Date(h.at).toLocaleString(locale(),{timeZone:'Asia/Jakarta'}))+' WIB '+esc(h.note)+'</p>').join('')}</div></details>`:'')+
   `<div class="formfooter"><div class="actions"><span class="mr" id="saveState" role="status">${dirty?'Perubahan belum disimpan':record.version?'Data tersimpan':'Draf baru'}</span>${editable?'<button id="save" class="primary">Simpan draf</button>':''}${editable&&r?'<button class="outline" data-act="submit">Kirim untuk persetujuan</button>':''}${editable&&r&&(app.person.role==='admin'||r.owner_id===app.person.id)?'<button class="dangerbtn" data-act="archive">Arsipkan</button>':''}${r?.can_review?'<button class="primary" data-act="approve">Setujui</button><button class="outline" data-act="return">Kembalikan</button>':''}${r?'<button class="outline" id="print">Cetak / PDF</button>':''}</div></div>`;
-  onBtn(host,'#back',()=>go(r?'trace':'reports'));onBtn(host,'#save',save);onBtn(host,'[data-act]',b=>action(b.dataset.act));onBtn(host,'#print',async()=>{if(dirty)throw Error('Simpan draf sebelum mencetak.');await (await import('/print.js')).printReport(record,def);});
+  onBtn(host,'#back',()=>go(r?'trace':'reports',{area:args.area}));onBtn(host,'#save',save);onBtn(host,'[data-act]',b=>action(b.dataset.act));onBtn(host,'#print',async()=>{if(dirty)throw Error('Simpan draf sebelum mencetak.');await (await import('/print.js')).printReport(record,def);});
   host.querySelectorAll('[data-meta]').forEach(el=>el.oninput=()=>{doc.meta[el.dataset.meta]=el.value;mark();});for(const el of host.querySelectorAll('[data-meta="date"],[data-meta="shift"]'))el.onchange=()=>{doc.meta[el.dataset.meta]=el.value;mark();for(const box of host.querySelectorAll('details[data-group][open]')){const g=def.sections.find(s=>s.id===box.dataset.group);if(g?.kind==='hourly')fields(box,g);}};
   const cook=host.querySelector('#cook');if(cook)cook.onchange=()=>{record.cook=+cook.value;mark();};
   host.querySelectorAll('details[data-group]').forEach(box=>{const g=def.sections.find(s=>s.id===box.dataset.group);
@@ -147,5 +146,5 @@ async function edit(host,args){
  const timer=setInterval(async()=>{if(document.hidden||!host.isConnected)return;try{const next=await api('clock');if(server.hour!==next.hour||server.shift!==next.shift||server.day!==next.day||String(server.fillShifts)!==String(next.fillShifts)){server=next;redraw();}else server=next;}catch{}},45000);
  app.cleanup=()=>clearInterval(timer);
 }
-export async function render(key,host,args){if(key==='reports')return picker(host);if(key==='trace')return trace(host,args);if(key==='downtime')return downtime(host,args);return edit(host,args);}
+export async function render(key,host,args){if(key==='reports')return picker(host,args);if(key==='trace')return trace(host,args);if(key==='downtime')return downtime(host,args);return edit(host,args);}
 

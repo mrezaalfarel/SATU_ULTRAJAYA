@@ -58,11 +58,42 @@ async function enter(session){
  $('#personName').textContent=app.person.name;$('#personRole').textContent=[roleName(app.person.role),app.person.workArea].filter(Boolean).join(' · ');$('#monogram').textContent=app.person.name.split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
  drawNavigation();menuState();if(!await restoreDraft())await go('dashboard',{},true);
 }
+const reportSections = {
+ 'Proses':['PROCESS_MILK','PROCESS_CIP_PAST'],
+ 'Sterilizer':['STERILIZER_GEA'],
+ 'Aseptic Tank':['ASEPTIC_GEA','ASEPTIC_CIP'],
+ 'Filling Machine':['FILL_PRODUCTION','FILL_EVENT','FILL_PACK','FILL_VOLUME','FILL_CIP'],
+ 'Packing':['PACKING_STRAW','PACKING_CBP'],
+ 'Supervisor':['downtime','PRODUCTION_TOTAL','SUPERVISOR_DAILY']
+};
+export function availableSections(){
+ const catalog=new Map(app.catalog.map(form=>[form.id,form]));
+ const result={};
+ for(const [area,ids] of Object.entries(reportSections)){
+  const forms=[];
+  for(const id of ids){
+   if(id==='downtime'){
+    if(catalog.has('FILL_EVENT'))forms.push({id,title:'Laporan Downtime'});
+   }else if(catalog.has(id)&&(id!=='SUPERVISOR_DAILY'||adminArea())){
+    const form=catalog.get(id);
+    forms.push({...form,title:({SUPERVISOR_DAILY:'DMS · Laporan harian',PRODUCTION_TOTAL:'Total produksi'})[id]||form.title});
+   }
+  }
+  if(forms.length)result[area]=forms;
+ }
+ return result;
+}
 function drawNavigation(){
  const lang=language(),names=navigation[lang],isEn=lang==='en';
  const nav=$('#nav');
  nav.lang=lang;
  nav.innerHTML=Object.keys(names).filter(k=>k!=='management'||adminArea()).map(k=>`<button class="navbtn" data-go="${k}"><span class="glyph" aria-hidden="true">${icons[k]}</span>${names[k]}</button>`).join('');
+ const reports=nav.querySelector('[data-go="reports"]');
+ const group=document.createElement('details');
+ group.className='report-nav';
+ group.innerHTML='<summary class="navbtn"><span class="glyph" aria-hidden="true">▤</span>'+names.reports+'</summary><div class="area-nav">'+Object.keys(availableSections()).map(area=>'<button type="button" data-area="'+esc(area)+'">'+esc(area)+'</button>').join('')+'</div>';
+ reports.replaceWith(group);
+ onBtn(group,'[data-area]',b=>go('reports',{area:b.dataset.area}));
  onBtn(nav,'[data-go]',b=>go(b.dataset.go));
  $('.nav-caption').textContent=isEn?'Workspace':'Ruang kerja';
  $('#logout').textContent=isEn?'Sign out':'Keluar dari akun';
@@ -97,6 +128,9 @@ async function go(key,args={},force=false){
  app.cleanup?.();app.cleanup=null;app.isDirty=null;app.captureDraft=null;app.route=key;const e=++epoch;$('#shell').classList.remove('mobile-open');menuState();
  const names=navigation[language()],actual=['edit','downtime'].includes(key)?'reports':key==='detail'?'trace':key;$('#breadcrumb').textContent=names[actual];
  document.title=(names[actual]||'Laporan')+' · SATU ULTRAJAYA';$('#nav').querySelectorAll('[data-go]').forEach(b=>b.setAttribute('aria-current',b.dataset.go===actual?'page':'false'));
+ const reportNav=$('#nav .report-nav');
+ if(reportNav&&actual==='reports')reportNav.open=true;
+ for(const b of document.querySelectorAll('#nav [data-area]'))b.setAttribute('aria-current',key==='reports'&&b.dataset.area===args.area?'page':'false');
  const host=document.createElement('section');$('#main').replaceChildren(host);host.innerHTML='<p class="muted">Memuat…</p>';$('#main').focus({preventScroll:true});window.scrollTo(0,0);
  try{if(key==='dashboard')await dashboard(host);
  else if(['reports','edit','trace','detail','downtime'].includes(key)){const m=await import('/report.js');if(e===epoch)await m.render(key,host,args);}

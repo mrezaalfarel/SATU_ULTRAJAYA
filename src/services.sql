@@ -59,12 +59,23 @@ begin
   elsif not exists(select 1 from satu.people where id=ident) then raise exception 'MISSING'; end if;
   delete from satu.sessions where person=ident;
  elsif a='leaderboard' then
-  return (select coalesce(jsonb_agg(to_jsonb(x) order by x.seconds desc,x.name),'[]') from
-   (select u.name,sum(l.seconds) seconds,sum(l.visits) visits,count(*) filter(where l.completed) completed from satu.learning l join satu.people u on u.id=l.person where u.active group by u.id,u.name order by seconds desc,u.name limit 10) x);
+  return (with totals as (
+   select u.id,u.name,sum(l.seconds) seconds,sum(l.visits) visits,
+          coalesce(sum(l.score),0) points,count(l.score) quizzes,count(*) filter(where l.completed) completed
+   from satu.learning l join satu.people u on u.id=l.person where u.active group by u.id,u.name
+  ), ranked as (
+   select *,case d->>'sort' when 'points' then points when 'visits' then visits else seconds end metric
+   from totals where coalesce(d->>'sort','')<>'points' or quizzes>0
+   order by metric desc,name,id limit 10
+  ) select coalesce(jsonb_agg(to_jsonb(ranked)-'id'-'metric' order by metric desc,name,id),'[]') from ranked);
  elsif a='modules' then
   return (select coalesce(jsonb_agg(to_jsonb(x) order by x.title,x.id),'[]') from
    (select m.id,m.title,m.category,m.revision,m.active,m.manual,m.attachment is not null as has_file,l.seconds,l.completed,l.score from satu.modules m left join satu.learning l on l.module=m.id and l.person=p.id
-    where (m.active or p.role in ('admin','management')) and (nullif(d->>'after','') is null or (m.title,m.id)>(d->>'after',(d->>'after_id')::uuid)) order by m.title,m.id limit 51) x);
+    where (m.active or p.role in ('admin','management'))
+      and (nullif(d->>'category','') is null or m.category=d->>'category'
+        or (d->>'category'='Tutorial' and m.category in ('Book','Video'))
+        or (d->>'category'='Mini Quiz' and jsonb_array_length(m.questions)>0))
+      and (nullif(d->>'after','') is null or (m.title,m.id)>(d->>'after',(d->>'after_id')::uuid)) order by m.title,m.id limit 51) x);
  elsif a='manual_search' then
   return (select coalesce(jsonb_agg(to_jsonb(x) order by x.rank desc,x.title),'[]') from (select m.id,m.title,m.revision,ts_headline('simple',m.body,t.q,'StartSel=, StopSel=, MaxWords=55, MinWords=20, MaxFragments=3') excerpt, ts_rank(m.search,t.q) rank
    from satu.modules m cross join lateral (select to_tsquery('simple',coalesce(string_agg(quote_literal(word),' | '),'')) q from unnest(tsvector_to_array(to_tsvector('simple',d->>'q'))) as w(word) where length(word)>1 and word not in ('apa','apakah','bagaimana','cara','saya','kita','yang','dengan','pada','untuk','dan','di','ke','dari','ini','itu','berapa','mengenai','tolong')) t where m.active and m.manual and m.search @@ t.q order by rank desc,m.title limit 5) x);
@@ -87,7 +98,7 @@ begin
    select * into rankrow from satu.learning where person=p.id and module=item.id for update;
    if not found then raise exception 'MISSING'; end if;
    if a='heartbeat' then
-    update satu.learning set seconds=seconds+greatest(0,least(40,floor(extract(epoch from (now()-last_seen)))::int)),last_seen=now() where person=p.id and module=item.id;
+    update satu.learning set seconds=seconds+greatest(0,least(40,coalesce((d->>'seconds')::int,40),floor(extract(epoch from (now()-last_seen)))::int)),last_seen=now() where person=p.id and module=item.id;
    elsif a='finish' then
     if jsonb_array_length(item.questions)>0 and coalesce(rankrow.score,0)<70 then raise exception 'QUIZ_REQUIRED'; end if;
     update satu.learning set completed=true where person=p.id and module=item.id;
