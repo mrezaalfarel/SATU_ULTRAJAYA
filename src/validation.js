@@ -104,7 +104,7 @@ function geofence(config,g){
  const num=(v,lo,hi)=>typeof v==='number'&&Number.isFinite(v)&&v>=lo&&v<=hi;
  const siteDefaults={SITE_LAT:'-6.867190',SITE_LON:'107.513711',SITE_RADIUS_M:'200',GPS_MAX_ACCURACY_M:'60'};
  const configured=(key,lo,hi)=>{const value=config[key]??siteDefaults[key];if(typeof value!=='string'||!value.trim()||!num(Number(value),lo,hi))fail('Admin perlu melengkapi konfigurasi lokasi pilot.',503);return Number(value);};
- const lat=configured('SITE_LAT',-90,90),lon=configured('SITE_LON',-180,180),radius=configured('SITE_RADIUS_M',1,10000),limit=configured('GPS_MAX_ACCURACY_M',1,1000);
+ const lat=configured('SITE_LAT',-90,90),lon=configured('SITE_LON',-180,180),radius=configured('SITE_RADIUS_M',1,50000),limit=configured('GPS_MAX_ACCURACY_M',1,1000);
  if(!g||!num(g.lat,-90,90)||!num(g.lon,-180,180)||!num(g.accuracy,0.01,limit))fail('Lokasi belum cukup akurat. Aktifkan lokasi presisi lalu coba lagi.',403);
  const rad=x=>x*Math.PI/180;
  const h=Math.sin(rad(g.lat-lat)/2)**2+Math.cos(rad(lat))*Math.cos(rad(g.lat))*Math.sin(rad(g.lon-lon)/2)**2;
