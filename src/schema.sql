@@ -126,16 +126,49 @@ for each row when (old.production_lines is distinct from new.production_lines)
 execute function satu.clear_changed_line_access();
 
 alter table satu.people add column if not exists work_area text;
+alter table satu.people add column if not exists supervisor_id uuid references satu.people(id);
+create index if not exists people_active_foremen on satu.people(supervisor_id) where role='foreman' and active;
+alter table satu.people drop constraint if exists people_role_check;
+alter table satu.people add constraint people_role_check
+ check(role in ('admin','operator','pengawas','foreman','qc','management','qa','ci'));
+update satu.people set work_area='Sterilizer - Aseptic Tank'
+ where role='operator' and work_area in ('Sterilizer','Aseptic Tank');
+
+-- A NULL list is reserved for unrestricted office/QC roles. Missing assignments have zero grants.
+create or replace function satu.assignment_forms(job text,area text) returns text[]
+language sql immutable set search_path='' as $$
+ with groups as (
+  select array['FILL_PRODUCTION','FILL_EVENT','FILL_PACK','FILL_CIP','FILL_VOLUME'] as filling,
+         array['STERILIZER_GEA','ASEPTIC_GEA','ASEPTIC_CIP'] as inprocess,
+         array['PROCESS_MILK','PROCESS_CIP_PAST'] as process,
+         array['PACKING_CBP','PACKING_STRAW'] as packing
+ )
+ select case
+  when job in ('admin','management','qc','qa','ci') then null
+  when job='operator' and area='Filling' then filling
+  when job='operator' and area='Sterilizer - Aseptic Tank' then inprocess
+  when job='operator' and area='Packing' then packing
+  when job in ('pengawas','foreman') and area='Filling - Packing' then filling || packing
+  when job in ('pengawas','foreman') and area='InProses' then inprocess
+  when job in ('operator','pengawas','foreman') and area='Proses' then process
+  else array[]::text[]
+ end from groups
+$$;
+
+create or replace function satu.allowed_forms(p satu.people) returns text[]
+language sql immutable set search_path='' as $$
+ select case when p.role in ('operator','pengawas','foreman')
+                  and (p.production_lines is null or (p.role='foreman' and p.supervisor_id is null))
+             then array[]::text[] else satu.assignment_forms(p.role,p.work_area) end
+$$;
 create or replace function satu.form_allowed(p satu.people, form_type text)
 returns boolean language sql immutable set search_path='' as $$
- select p.role <> 'operator' or p.work_area is null or form_type='PRODUCTION_TOTAL'
-        or coalesce(p.work_area = (case form_type
--- INSERT_CATALOG_AREAS
-        else null end),false)
+ select coalesce(form_type=any(satu.allowed_forms(p)),p.role in ('admin','management','qc','qa','ci'))
 $$;
 
 create or replace function satu.person_view(p satu.people) returns jsonb language sql stable set search_path='' as $$
- select jsonb_build_object('id',p.id,'name',p.name,'employee',p.employee,'role',p.role,'active',p.active,'workArea',p.work_area)
+ select jsonb_build_object('id',p.id,'name',p.name,'employee',p.employee,'role',p.role,'active',p.active,'workArea',p.work_area,
+ 'supervisorId',p.supervisor_id,'allowedForms',satu.allowed_forms(p))
 $$;
 create or replace function satu.card(r satu.reports) returns jsonb language sql stable set search_path='' as $$
  select jsonb_build_object('id',r.id,'type',r.type,'day',r.day,'shift',r.shift,'unit',r.unit,'line',r.line,'cook',r.cook,'status',r.status,
@@ -143,9 +176,10 @@ create or replace function satu.card(r satu.reports) returns jsonb language sql 
 $$;
 create or replace function satu.report_op(a text,d jsonb,p satu.people) returns jsonb language plpgsql set search_path='' as $$
 declare r satu.reports; old_doc jsonb; ident uuid:=(d->>'id')::uuid; opid uuid:=(d->>'op')::uuid;
- x satu.operations; is_reviewer boolean:=p.role in ('admin','management','pengawas'); note text:=left(coalesce(d->>'note',''),800);
+ x satu.operations; is_reviewer boolean:=p.role in ('admin','management','pengawas','foreman'); note text:=left(coalesce(d->>'note',''),800);
  m jsonb:=d#>'{doc,meta}'; newstatus text; v integer:=coalesce((d->>'version')::integer,-1); exists_row boolean;
 begin
+ if p.role in ('pengawas','foreman') and a not in ('approve','return') then raise exception 'DENIED'; end if;
  if opid is null or ident is null or v<0 then raise exception 'INPUT'; end if;
  perform pg_advisory_xact_lock(hashtextextended(opid::text,0));
  select * into x from satu.operations where op=opid;
@@ -204,7 +238,7 @@ begin
   if not found then raise exception 'MISSING'; end if;
   return satu.card(r)||jsonb_build_object('doc',r.doc,'author',(select name from satu.people where id=r.owner_id),'reviewer',(select name from satu.people where id=r.reviewer_id),'history',
    (select coalesce(jsonb_agg(to_jsonb(h) order by version desc),'[]') from (select v.version,v.action,v.at,n.name,v.note from satu.history v join satu.people n on n.id=v.actor where v.report_id=r.id order by version desc limit 30) h),
-   'can_review', r.status='PENDING' and p.role in ('admin','pengawas','management') and not exists (
+   'can_review', r.status='PENDING' and p.role in ('admin','pengawas','foreman','management') and not exists (
     select 1 from satu.history h where h.report_id=r.id and h.actor=p.id and h.action in ('save','submit')
    ));
  end if;
@@ -221,10 +255,11 @@ begin
   return result;
  end if;
  if a='list' then
-  select coalesce(jsonb_agg(satu.card(z.r) order by (z.r).day desc,(z.r).id desc),'[]') into result from
+  select coalesce(jsonb_agg(satu.card(z.r) ||
+   case when d->>'export'='true' then jsonb_build_object('doc',(z.r).doc) else '{}'::jsonb end order by (z.r).day desc,(z.r).id desc),'[]') into result from
   (select t as r from satu.reports t where t.line=d->>'line' and satu.form_allowed(p,t.type) and t.day between since and until_day and (t.status<>'ARCHIVED' or (p.role='admin' and raw_status='ARCHIVED'))
    and (raw_status is null or t.status=raw_status) and (nullif(d->>'type','') is null or t.type=d->>'type') and (q='' or t.terms @> array[q])
-   and (k is null or (t.day,t.id)<(k,k_id)) order by t.day desc,t.id desc limit 26) z;
+   and (k is null or (t.day,t.id)<(k,k_id)) order by t.day desc,t.id desc limit (case when d->>'export'='true' then 11 else 26 end)) z;
   return result;
  end if;
  with relevant as materialized(select day,status,stats from satu.reports where line=d->>'line' and satu.form_allowed(p,type) and day between since and until_day and status<>'ARCHIVED'),

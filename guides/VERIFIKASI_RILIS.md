@@ -1,19 +1,30 @@
-# Verifikasi kandidat rilis SATU ULTRAJAYA
+# Verifikasi rilis SATU ULTRAJAYA
 
-| Pemeriksaan | Bukti dan batas pengukuran |
+## Pemeriksaan migrasi lokal
+
+SQL rilis sebelumnya (19 November 2026) dipasang pada PostgreSQL lokal PGlite. Satu laporan sintetis yang disetujui, tiga entri histori, dan satu operator berlabel Aseptic Tank disiapkan sebelum memasang ulang SQL kandidat sebanyak dua kali. ID, isi laporan, versi, status, pembuat, serta jumlah histori cocok dengan data sebelum migrasi. Operator tetap memiliki line historis dan mendapatkan tiga formulir Sterilizer - Aseptic Tank. Pemeriksaan satu sampel ini melengkapi uji pemulihan dan penerimaan pada salinan instalasi perusahaan.
+
+Perintah Wrangler `deploy --dry-run` berhasil membangun Worker dengan binding ASSETS dan AI. Ketersediaan model, persetujuan syarat pada akun, kuota dan kualitas inferensi diperiksa di lingkungan target.
+
+## Pemeriksaan yang dapat diulang
+
+Gunakan checkout dan SQL dari versi yang sama. Dari akar proyek, jalankan `npm ci`, `python3 src/build.py`, `npm test`, `npm run test:size`, dan `npm run test:browser`. Uji browser menggunakan Chromium, Worker hasil build dan data sintetis. Catat commit, waktu, penanggung jawab, log serta hasil setiap pemeriksaan sebelum menandai versi lulus. [Prosedur deploy dan pemulihan](../DEPLOY.md)
+
+| Bidang | Periksa pada kandidat rilis |
 |---|---|
-| Formulir dan audit | 14 jenis disimpan, dikirim, disetujui oleh akun terpisah dan dibaca kembali lewat Worker dengan PostgreSQL lokal. Uji mencakup duplikasi, versi konflik, koreksi shift, penolakan persetujuan sendiri, rekap serta downtime. |
-| Penugasan | Admin membuat operator dan menetapkan area/line dari browser. Uji API memeriksa isolasi antara Filling dan Sterilizer, pembatasan detail, daftar, ringkasan dan perubahan. Pengawas dua line dapat memilih line, dan sesi lama berakhir saat penugasan diubah. |
-| Geofence | Uji dengan koordinat perangkat sintetis mencakup pusat, titik dekat batas dengan estimasi kesalahan melewati radius, serta titik di luar pabrik. Browser meminta geolokasi lewat HTTPS pada deployment. Akurasi aktual di dalam gedung perlu diukur. |
-| Browser | Chromium headless dengan build distribusi dan kebijakan header. Operator menyimpan ulang setelah respons terputus, menelusuri lot dan mencetak. Pengawas menyetujui, lalu dashboard menampilkan aktual 100, baik 95 dan reject 5. Delapan latar cetak dan tata letak lebar 390 px diuji. |
-| Pembelajaran dan AI | Pengumuman admin tampil, operator lulus kuis dan membuka sumber jawabannya. Uji Worker memeriksa izin lampiran, status publikasi, batas foto dan penanganan layanan AI yang gagal. Layanan model dan Auth/Storage hosted memerlukan verifikasi di akun tujuan. |
-| Pembaruan dashboard | Uji mencakup kebijakan kanal privat, sinyal perubahan, logout dan penyegaran browser dengan transport pesan simulasi. Verifikasi dua perangkat terpisah di Pages dan Supabase hosted masih diperlukan. |
-| Volume | 5.000 laporan Sterilizer × 8 slot jam × 25 nilai sintetis disimpan dan dibaca kembali. Sampel ini memuat 1.000.000 nilai parameter. Ukuran skema, indeks dan rencana pencarian tercatat dalam HASIL_UJI_KAPASITAS.json. Kinerja serah terima shift dan kuota paket gratis perlu diukur di jaringan tujuan. |
+| Peran dan area | Operator Filling memiliki 5 formulir, Sterilizer - Aseptic Tank 3, Proses 2, Packing 2. Foreman mempunyai pengawas aktif pada area yang sama dan line yang mencakup penugasannya. Uji penolakan foreman aktif kelima, penugasan tak cocok serta akses ke line atau formulir di luar area. |
+| Tinjauan dan riwayat | Operator mengisi draf, menyimpan perubahan dan mengirim. Foreman atau pengawas area meninjau, mengembalikan dengan alasan, lalu menyetujui revisi. Uji konflik versi, kirim ulang dan penolakan peninjau yang pernah mengisi atau mengirim. Arsip draf/revisi menyimpan alasan dan histori. |
+| Ekspor | Gunakan filter dengan lebih dari 25 hasil lintas tanggal/shift di line yang sama. Cocokkan jumlah ID laporan unik, status, versi dan parameter pada CSV dengan seluruh hasil filter, termasuk halaman lanjutan. Uji pembatalan unduhan dan periksa pembatasan akses pada akun area berbeda. |
+| Browser dan laporan | Login dengan GPS sintetis, navigasi ponsel, simpan dan buka kembali, periksa rekap dashboard, telusuri lot, serta cetak contoh tiap jenis latar. Periksa hasil fisik di printer line dan revisi isian bersama pemilik SOP. |
+| AI dan kamera | Uji jawaban singkat, pertanyaan majemuk, pertanyaan lanjutan dan rujukan yang kurang. Dengan binding aktif, uji foto kemasan normal, cacat dan tidak jelas serta penolakan akses kamera. Uji kamera dan model hosted memerlukan perangkat serta akun target. |
+| Dashboard, LMS, volume | Verifikasi persetujuan melalui dua perangkat berbeda, angka terkini per line, lampiran privat dan kuis. `test:size` mengisi 5.000 laporan × 8 slot × 25 nilai sintetis. Ukuran skema, indeks, dan rencana pencarian pada sampel lokal tersedia di HASIL_UJI_KAPASITAS.json. |
 
-## Peluncuran minggu 19–22 November 2026
+## Pencatatan penerimaan
 
-1. **20 November · IT dan admin aplikasi.** Siapkan proyek Supabase uji dan produksi serta Cloudflare Pages. Hubungkan repo privat dan isi konfigurasi per lingkungan. Buat akun dengan contoh penugasan di panduan line dan pasang SQL rilis.
-2. **20–21 November · operator, pengawas, dan QC.** Di staging, uji satu siklus shift dari dua perangkat pabrik, tracing lot, keadaan Wi-Fi putus dan login di tepi area. Cocokkan definisi parameter, revisi dan hasil cetak dengan dokumen terkendali. Rekam waktu simpan p95 dan jeda dashboard p95 saat pergantian shift. Usulan target pilot 2 detik dan 5 detik bila Realtime aktif.
-3. **21–22 November · PIC produksi bersama IT.** Buka satu line setelah hasil aktual disetujui, backup dan pemulihan sudah diuji, serta operator mengenal prosedur gangguan. Tetapkan siapa yang merekonsiliasi catatan cadangan. Evaluasi satu shift sebelum menambah line. Jadwal ini merupakan target yang bergantung pada kesiapan akun, perangkat dan persetujuan pabrik.
+| Lingkungan | Versi dan waktu WIB | PIC | Bukti yang dilampirkan |
+|---|---|---|---|
+| Staging | Diisi saat uji | IT + operator/pengawas | Migrasi berhasil, akun per peran, hasil uji jaringan, transaksi, ekspor, AI dan cetak |
+| Produksi, line pertama | Diisi saat buka shift | Pengawas shift + QC | Laporan uji, nomor versi, waktu simpan dan perubahan dashboard dua perangkat |
+| Pemulihan | Diisi saat simulasi | IT | Pemulihan database, Auth, lampiran dan pemeriksaan laporan setelah backup |
 
-Untuk mengulang uji, gunakan Node.js 22+, Python 3, dan Chromium. Dari akar repo jalankan `npm ci`, `python3 src/build.py`, `npm test`, `npm run test:size` dan `npm run test:browser`. Browser menggunakan PostgreSQL lokal serta akun sintetis. Untuk pengecekan cloud gunakan prosedur dua perangkat dalam DEPLOY.md.
+Dalam target minggu 20–22 November 2026, jadwalkan SQL dan pengujian staging sebelum promosi Worker. Pantau satu pergantian shift pada line pertama, lalu tinjau hasil bersama pengawas sebelum penambahan line. Kuota layanan, perangkat, akurasi lokasi dan persetujuan pemilik proses diperiksa pada lingkungan tujuan.

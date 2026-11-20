@@ -13,9 +13,16 @@ export async function fixture(){
  const mod=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
  const env={SUPABASE_URL:'https://db.test',SUPABASE_SECRET_KEY:'synthetic-secret',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_synthetic',PILOT_LINE:'Line Uji',SITE_LAT:'0',SITE_LON:'0',SITE_RADIUS_M:'250',GPS_MAX_ACCURACY_M:'50'};
  const accounts=new Map(),blobs=new Map(),ids={};const testPassword='Khusus-pengujian-01';
- for(const [username,role] of [['op-uji','operator'],['spv-uji','pengawas'],['adm-uji','admin'],['op-lain','operator']]){
+ const profiles=[
+  ['op-uji','operator','Filling'], ['op-lain','operator','Filling'],
+  ['op-proses','operator','Proses'], ['op-steril','operator','Sterilizer - Aseptic Tank'],
+  ['op-packing','operator','Packing'], ['spv-uji','pengawas','Filling - Packing'],
+  ['spv-proses','pengawas','Proses'], ['spv-steril','pengawas','InProses'],
+  ['adm-uji','admin'], ['mgmt-uji','management'], ['qc-uji','qc']
+ ];
+ for(const [username,role,area] of profiles){
   const id=crypto.randomUUID();ids[username]=id;const email=username+'@login.satu.invalid';accounts.set(email,{id,password:testPassword});await db.query('insert into auth.users(id,email) values($1,$2)',[id,email]);
-  await db.query('insert into satu.people(id,employee,name,role) values($1,$2,$2,$3)',[id,username,role]);
+  await db.query('insert into satu.people(id,employee,name,role,work_area,production_lines) values($1,$2,$2,$3,$4,$5)',[id,username,role,area??null,area?[env.PILOT_LINE]:null]);
  }
  const rawFetch=globalThis.fetch;
  globalThis.fetch=async(url,init={})=>{

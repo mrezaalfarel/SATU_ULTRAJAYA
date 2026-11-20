@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import {fixture} from './fixture.mjs';
+
+const f=await fixture();
+try{
+ const operator=await f.login('op-uji');
+ const admin=await f.login('adm-uji');
+ const doc={id:crypto.randomUUID(),title:'Manual segel',body:'Contoh sintetis tentang segel kemasan.',category:'SOP',revision:'03',manual:true,active:true,questions:[]};
+ assert.equal((await f.post('module_save',doc,admin)).status,200);
+ const calls=[];
+ let response='Keterangan dari manual [1].';
+ f.env.AI={run:async(model,input)=>{calls.push({model,input});return {response};}};
+ const ask=(q,data={})=>f.post('ask',{q,...data},operator);
+ let result=await ask('Apa arti segel?');
+ assert.equal(result.x.docs[0].id,doc.id);
+ assert.equal(result.x.reply,response);
+ assert.equal(result.x.assessment,null);
+ const prior={question:'Apa arti segel?',answer:response};
+ result=await ask('Bagaimana membandingkan kedua kasus ini?',{history:[prior]});
+ assert.equal(result.x.docs[0].id,doc.id);
+ const context=JSON.parse(calls.at(-1).input.messages.at(-1).content);
+ assert.deepEqual(context.riwayat,[prior]);
+ assert.equal(context.manual[0].revisi,'03');
+ assert.equal((await ask('Lanjutkan',{history:Array(5).fill(prior)})).status,422);
+ response='Klaim dengan sumber [99].';
+ assert.equal((await ask('segel')).x.reply,'');
+ const image=Buffer.from([137,80,78,71,13,10,26,10]).toString('base64');
+ response=JSON.stringify({classification:'abnormal',observation:'Contoh kerutan pada sisi kiri.',reference:'Kutipan [1].'});
+ result=await ask('Periksa segel',{image});
+ assert.equal(result.x.assessment,'abnormal');
+ assert.equal(calls.at(-1).input.image.length,8);
+ response=JSON.stringify({classification:'normal',observation:'Permukaan terlihat rata.',reference:'Tidak ada.'});
+ result=await ask('Periksa segel',{image});
+ assert.equal(result.x.assessment,'uncertain');
+ response='non-JSON response';
+ result=await ask('Periksa segel',{image});
+ assert.equal(result.x.assessment,'uncertain');
+ assert.match(result.x.notice,/QC/);
+ response='Penjelasan umum UHT.';
+ result=await ask('Jelaskan konsep UHT',{mode:'general'});
+ assert.equal(result.x.reply,response);
+ assert.deepEqual(result.x.docs,[]);
+ assert.match(result.x.notice,/umum/);
+ delete f.env.AI;
+ assert.equal((await ask('segel')).x.docs.length,1);
+ console.log('OK multi-turn, perbandingan manual, sitasi, peran model visual dan hasil belum pasti');
+}finally{await f.close();}

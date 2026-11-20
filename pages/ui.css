@@ -6,3 +6,7 @@
 
 
 .appdialog{max-width:min(420px,90vw);width:100%;border:1px solid var(--stroke);color:var(--ink);background:var(--surface);border-radius:14px;padding:24px;box-shadow:0 20px 90px #1234}.appdialog::backdrop{background:#0d263a77}.appdialog .actions{justify-content:flex-end}
+
+.ai-photo{width:min(100%,32rem);max-height:24rem;object-fit:contain;border-radius:.45rem}
+#conversation:not(:empty){margin-bottom:1rem}
+#conversation h2{font-size:1.1rem}

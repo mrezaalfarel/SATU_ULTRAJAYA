@@ -1,15 +1,26 @@
-import {app,api,go,esc,fmt,dateLabel,offset,tag,titleOf,heading,onBtn,busy,toast,mayReview,statusNames,askDialog,locale,releaseTemporaryDraft} from '/app.js';
+import {exportFilteredReports} from '/export.js';
+import {app,api,go,esc,fmt,dateLabel,offset,tag,titleOf,heading,onBtn,busy,toast,mayReview,approvalOnly,adminArea,statusNames,askDialog,locale,releaseTemporaryDraft} from '/app.js';
 const opt=(v,label,selected)=>'<option value="'+esc(v)+'" '+(String(v)===String(selected)?'selected':'')+'>'+esc(label)+'</option>';
 function picker(host){
- const areas=new Map();for(const d of app.catalog){if(d.id==='SUPERVISOR_DAILY'&&!mayReview())continue;if(!areas.has(d.area))areas.set(d.area,[]);areas.get(d.area).push(d);}
- host.innerHTML=heading('Report Production','Pilih area dan formulir untuk mencatat produksi.','Pencatatan')+[...areas].map(([area,defs],i)=>`<details class="group" ${i===0?'open':''}><summary>${esc(area)} · ${defs.length} formulir</summary><div class="inner">${defs.map(d=>`<button class="report-link" data-new="${d.id}"><span><strong>${esc(d.title)}</strong><small>${esc(d.formNo)}${d.rev?' · Rev '+esc(d.rev):''}</small></span><span>→</span></button>`).join('')}</div></details>`).join('');
+ const areas=new Map();
+ for(const def of app.catalog){
+  if(def.id==='SUPERVISOR_DAILY'&&!adminArea())continue;
+  if(!areas.has(def.area))areas.set(def.area,[]);
+  areas.get(def.area).push(def);
+ }
+ const reviewing=approvalOnly();
+ host.innerHTML=heading('Laporan produksi',reviewing?'Pilih jenis laporan untuk meninjau kiriman di area kerja Anda.':'Pilih formulir untuk mencatat produksi.','Pencatatan')+
+  [...areas].map(([area,defs],i)=>`<details class="group" ${i===0?'open':''}><summary>${esc(area)} · ${defs.length} formulir</summary><div class="inner">${defs.map(d=>`<button class="report-link" ${reviewing?'data-browse':'data-new'}="${esc(d.id)}"><span><strong>${esc(d.title)}</strong><small>${esc(d.formNo)}${d.rev?' · Rev '+esc(d.rev):''}</small></span><span>→</span></button>`).join('')}</div></details>`).join('');
+ if(!areas.size)host.insertAdjacentHTML('beforeend','<p class="empty">Belum ada penugasan laporan. Hubungi admin untuk mengatur area kerja dan line produksi.</p>');
  if(app.catalog.some(d=>d.id==='FILL_EVENT'))host.insertAdjacentHTML('beforeend','<details class="group"><summary>Downtime</summary><div class="inner"><button class="report-link" data-go="downtime"><span><strong>Laporan Downtime</strong><small>Durasi terencana dan tidak terencana per mesin dan shift</small></span><span>→</span></button></div></details>');
- onBtn(host,'[data-go="downtime"]',()=>go('downtime'));onBtn(host,'[data-new]',b=>go('edit',{type:b.dataset.new}));
+ onBtn(host,'[data-go="downtime"]',()=>go('downtime'));
+ onBtn(host,'[data-new]',b=>go('edit',{type:b.dataset.new}));
+ onBtn(host,'[data-browse]',b=>go('trace',{type:b.dataset.browse,status:'PENDING'}));
 }
 async function downtime(host,args){
  const {calendar}=await api('clock');
  if(!host.isConnected)return;
- host.innerHTML=heading('Laporan Downtime','Setiap durasi berasal dari Laporan Kejadian Produksi yang sudah disetujui.','Report Production','<button class="primary" id="fromEvent">+ Catat kejadian</button>')+
+ host.innerHTML=heading('Laporan Downtime','Setiap durasi berasal dari Laporan Kejadian Produksi yang sudah disetujui.','Laporan produksi',approvalOnly()?'':'<button class="primary" id="fromEvent">+ Catat kejadian</button>')+
  `<form class="toolbar"><label>Dari tanggal<input name="from" type="date" value="${esc(args.from||offset(calendar,-6))}" required></label><label>Sampai tanggal<input name="to" type="date" value="${esc(args.to||calendar)}" required></label><button class="outline">Tampilkan</button></form><div id="downtimeRows" aria-live="polite"></div>`;
  const form=host.querySelector('form'),out=host.querySelector('#downtimeRows');
  let filters,rows=[],totals,nextPage=false,sequence=0;
@@ -44,17 +55,21 @@ async function trace(host,args){
   if(reset){filters=newFilters;rows=[];}
   rows.push(...src.slice(0,25));const last=rows.at(-1);
   cursor=src.length>25?{cursor_day:last.day,cursor_id:last.id}:null;
-  out.innerHTML='<div class="spread"><h3>Hasil penelusuran</h3>'+(rows.length?'<button class="outline" id="csv">Unduh hasil tampil (CSV)</button>':'')+'</div>'+
+  out.innerHTML='<div class="spread"><h3>Hasil penelusuran</h3>'+(rows.length?'<button class="outline" id="csv">Ekspor hasil pencarian (CSV)</button>':'')+'</div>'+
   (rows.length?'<div class="tablewrap"><table><thead><tr><th>Tanggal / shift</th><th>Formulir / unit</th><th>SKU / batch / lot</th><th>Status</th><th></th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${esc(dateLabel(r.day,true))}<br><small>Shift ${r.shift}</small></td><td>${esc(titleOf(r.type))}<br><small>${esc(r.unit)}${r.cook?' · Masakan '+r.cook:''}</small></td><td>${esc([r.sku,r.batch,r.lot].filter(Boolean).join(' / ')||'—')}</td><td>${tag(r.status)}</td><td><button class="text-btn" data-open="${r.id}">Buka</button></td></tr>`).join('')+'</tbody></table></div>':'<p class="empty">Belum ada laporan yang sesuai dengan filter ini.</p>')+
   (cursor?'<div class="actions"><button class="outline" id="next">Muat 25 berikutnya</button></div>':'');
-  onBtn(out,'[data-open]',b=>go('detail',{id:b.dataset.open}));onBtn(out,'#next',()=>search(false));onBtn(out,'#csv',()=>csv(rows));
+  onBtn(out,'[data-open]',b=>go('detail',{id:b.dataset.open}));onBtn(out,'#next',()=>search(false));onBtn(out,'#csv',async button=>{
+   const session=app.person?.id, line=app.line, run=sequence;
+   try {
+    const count=await exportFilteredReports({filters,api,catalog:app.catalog,
+     active:()=>host.isConnected && run===sequence && app.line===line && app.person?.id===session,
+     progress:n=>{button.textContent='Mengekspor '+fmt(n)+' laporan…';}});
+    toast(fmt(count)+' laporan diekspor.');
+   } catch(error){if(error.name!=='AbortError')throw error;}
+   finally{button.textContent='Ekspor hasil pencarian (CSV)';}
+  });
  }
  form.onsubmit=busy(form.querySelector('button'),()=>search(true));await search(true);
-}
-function csv(rows){
- const cell=v=>{let x=String(v??'');if(/^[\s]*[=+\-@\t\r]/.test(x))x="'"+x;return '"'+x.replaceAll('"','""')+'"';};
- const data=[['ID','Tanggal','Shift','Line','Unit','Formulir','SKU','Batch','Lot','Status'],...rows.map(r=>[r.id,r.day,r.shift,r.line,r.unit,titleOf(r.type),r.sku,r.batch,r.lot,statusNames[r.status]])].map(r=>r.map(cell).join(',')).join('\r\n');
- const u=URL.createObjectURL(new Blob(['\uFEFF'+data],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='SATU-Tracing.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),10000);
 }
 function entry(f,value,attrs,ro=false){
  const disable=ro||f.computed, extra=attrs+(disable?' disabled':'');const v=value??'';
@@ -74,12 +89,13 @@ async function edit(host,args){
  const def=app.catalog.find(x=>x.id===(r?.type||args.type));if(!def)throw Error('Formulir tidak ditemukan.');
  const fill=def.id.startsWith('FILL_'),calendarForm=fill||['ASEPTIC_GEA','STERILIZER_GEA'].includes(def.id);
  const record=r||{id:resumed?.id||crypto.randomUUID(),type:def.id,cook:def.id==='PROCESS_MILK'?1:0,version:0,status:'DRAFT',doc:{meta:{date:calendarForm?clock.calendar:clock.day,shift:fill?clock.fillShift:clock.shift,...Object.fromEntries(def.meta.filter(f=>['operator','operator_general'].includes(f.key)).map(f=>[f.key,app.person.name]))},sections:{}}};
- if(!r&&def.id==='SUPERVISOR_DAILY'&&!mayReview())throw Error('Hanya pengawas yang dapat membuat laporan ini.');
- const doc=structuredClone(resumed?.doc||record.doc);const editable=(def.id!=='SUPERVISOR_DAILY'||mayReview())&&['DRAFT','REVISION'].includes(record.status)&&(!r||r.owner_id===app.person.id||mayReview());
+ const mayWrite=!approvalOnly()&&(def.id!=='SUPERVISOR_DAILY'||adminArea());
+ if(!r&&!mayWrite)throw Error('Akun ini dapat meninjau laporan yang dikirim untuk persetujuan.');
+ const doc=structuredClone(resumed?.doc||record.doc);const editable=mayWrite&&['DRAFT','REVISION'].includes(record.status)&&(!r||r.owner_id===app.person.id||mayReview());
  if(resumed&&!r)record.cook=resumed.cook;
  const version=resumed?.version??record.version;
  let dirty=Boolean(resumed),op=resumed?.op||null,inFlight=false,server=clock,correction=resumed?.note||'';const slots={};const opened=new Set(['meta']);if(!r)opened.add(def.sections[0].id);
- const historyLabels={save:'Simpan',submit:'Kirim ke pengawas',approve:'Setujui',return:'Kembalikan',archive:'Arsipkan'};
+ const historyLabels={save:'Simpan',submit:'Kirim untuk persetujuan',approve:'Setujui',return:'Kembalikan',archive:'Arsipkan'};
  app.isDirty=()=>dirty||inFlight;
  app.captureDraft=()=>dirty?{type:def.id,id:r?.id,recovery:{id:record.id,doc:structuredClone(doc),cook:record.cook,op,version,note:correction}}:null;
  if(resumed){releaseTemporaryDraft();toast(version===record.version?'Isian sebelum sesi berakhir dipulihkan. Periksa lalu simpan draf.':'Isian dipulihkan. Versi server telah berubah. Periksa laporan terbaru sebelum menyimpan.',true);}
@@ -90,7 +106,7 @@ async function edit(host,args){
   `<div class="modebar spread">${tag(record.status)}<small>${record.version?'Versi '+record.version:'Laporan baru'} · Waktu server ${esc(server.hm)} WIB</small></div>${record.review_note?'<p class="message">Catatan pengawas · '+esc(record.review_note)+'</p>':''}<details class="group" data-group="meta" ${opened.has('meta')?'open':''}><summary>Identitas laporan</summary><div class="inner fields">${md}${def.id==='PROCESS_MILK'?'<label>Masakan<select id="cook" '+(r||!editable?'disabled':'')+'>'+[1,2,3,4].map(x=>opt(x,'Masakan '+x,record.cook)).join('')+'</select></label>':''}</div></details>`+
   def.sections.map(g=>`<details class="group" data-group="${g.id}" ${opened.has(g.id)?'open':''}><summary>${esc(g.title)} <small>· ${Object.keys(doc.sections[g.id]||{}).length} isian</small></summary><div class="inner"></div></details>`).join('')+
   (r?`<details class="group"><summary>Riwayat perubahan</summary><div class="inner">${(r.history||[]).map(h=>'<p><strong>v'+h.version+' · '+esc(historyLabels[h.action]||h.action)+'</strong> · '+esc(h.name)+' · '+esc(new Date(h.at).toLocaleString(locale(),{timeZone:'Asia/Jakarta'}))+' WIB '+esc(h.note)+'</p>').join('')}</div></details>`:'')+
-  `<div class="formfooter"><div class="actions"><span class="mr" id="saveState" role="status">${dirty?'Perubahan belum disimpan':record.version?'Data tersimpan':'Draf baru'}</span>${editable?'<button id="save" class="primary">Simpan draf</button>':''}${editable&&r?'<button class="outline" data-act="submit">Kirim ke pengawas</button>':''}${editable&&r&&(app.person.role==='admin'||r.owner_id===app.person.id)?'<button class="dangerbtn" data-act="archive">Arsipkan</button>':''}${r?.can_review?'<button class="primary" data-act="approve">Setujui</button><button class="outline" data-act="return">Kembalikan</button>':''}${r?'<button class="outline" id="print">Cetak / PDF</button>':''}</div></div>`;
+  `<div class="formfooter"><div class="actions"><span class="mr" id="saveState" role="status">${dirty?'Perubahan belum disimpan':record.version?'Data tersimpan':'Draf baru'}</span>${editable?'<button id="save" class="primary">Simpan draf</button>':''}${editable&&r?'<button class="outline" data-act="submit">Kirim untuk persetujuan</button>':''}${editable&&r&&(app.person.role==='admin'||r.owner_id===app.person.id)?'<button class="dangerbtn" data-act="archive">Arsipkan</button>':''}${r?.can_review?'<button class="primary" data-act="approve">Setujui</button><button class="outline" data-act="return">Kembalikan</button>':''}${r?'<button class="outline" id="print">Cetak / PDF</button>':''}</div></div>`;
   onBtn(host,'#back',()=>go(r?'trace':'reports'));onBtn(host,'#save',save);onBtn(host,'[data-act]',b=>action(b.dataset.act));onBtn(host,'#print',async()=>{if(dirty)throw Error('Simpan draf sebelum mencetak.');await (await import('/print.js')).printReport(record,def);});
   host.querySelectorAll('[data-meta]').forEach(el=>el.oninput=()=>{doc.meta[el.dataset.meta]=el.value;mark();});for(const el of host.querySelectorAll('[data-meta="date"],[data-meta="shift"]'))el.onchange=()=>{doc.meta[el.dataset.meta]=el.value;mark();for(const box of host.querySelectorAll('details[data-group][open]')){const g=def.sections.find(s=>s.id===box.dataset.group);if(g?.kind==='hourly')fields(box,g);}};
   const cook=host.querySelector('#cook');if(cook)cook.onchange=()=>{record.cook=+cook.value;mark();};
@@ -123,7 +139,7 @@ async function edit(host,args){
  const actionOps=new Map();
  async function action(a){if(inFlight)return;if(dirty)throw Error('Simpan perubahan sebelum melanjutkan.');
   let note='';if(['return','archive'].includes(a)){note=await askDialog(a==='return'?'Kembalikan kepada operator?':'Arsipkan laporan ini?',a==='return'?'Kembalikan':'Arsipkan',true);if(note===false)return;if(!note.trim())throw Error('Isi alasan terlebih dahulu.');}
-  else if(!await askDialog(a==='approve'?'Setujui dan kunci laporan ini?':'Kirim laporan ini ke pengawas?',a==='approve'?'Setujui':'Kirim'))return;
+  else if(!await askDialog(a==='approve'?'Setujui dan kunci laporan ini?':'Kirim laporan ini untuk persetujuan?',a==='approve'?'Setujui':'Kirim'))return;
   const k=a+'|'+note;if(!actionOps.has(k))actionOps.set(k,crypto.randomUUID());
   inFlight=true;host.inert=true;try{await api(a,{id:record.id,version:record.version,op:actionOps.get(k),note});if(!host.isConnected)return;toast('Status laporan diperbarui.');await go(a==='archive'?'trace':'detail',{id:record.id},true);}finally{inFlight=false;host.inert=false;}
  }

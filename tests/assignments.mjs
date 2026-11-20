@@ -13,14 +13,14 @@ try {
   }
   const filling = {name:'Operator Uji',employee:'filling-57',role:'operator',active:true,productionLines:[lines[0]],workArea:'Filling',password:f.testPassword};
   const fillProfile = await call(admin,'account',filling);
-  const sterilizer = {...filling,employee:'operator-sterilizer',productionLines:[lines[1]],workArea:'Sterilizer'};
+  const sterilizer = {...filling,employee:'operator-sterilizer',productionLines:[lines[1]],workArea:'Sterilizer - Aseptic Tank'};
   await call(admin,'account',sterilizer);
-  await call(admin,'account',{...filling,employee:'spv-dua',workArea:null,role:'pengawas',productionLines:lines});
+  await call(admin,'account',{...filling,employee:'spv-dua',workArea:'Filling - Packing',role:'pengawas',productionLines:lines});
   const op = await f.login(filling.employee), other = await f.login(sterilizer.employee), spv = await f.login('spv-dua');
   assert.equal((await call(op,'me',{})).line,lines[0]);
   assert.equal((await call(other,'me',{})).line,lines[1]);
-  assert.deepEqual(new Set((await call(op,'catalog',{})).map(x=>x.area)),new Set(['Filling','Rekap']));
-  assert.deepEqual(new Set((await call(other,'catalog',{})).map(x=>x.area)),new Set(['Sterilizer','Rekap']));
+  assert.deepEqual(new Set((await call(op,'catalog',{})).map(x=>x.area)),new Set(['Filling']));
+  assert.deepEqual(new Set((await call(other,'catalog',{})).map(x=>x.area)),new Set(['Sterilizer','Aseptic Tank']));
   const privateArt=(name,token)=>f.worker.fetch(new Request('https://pilot.test/private/'+name,{headers:{Cookie:token}}),f.env);
   assert.equal((await privateArt('STERILIZER_GEA.webp',op)).status,404);
   assert.equal((await privateArt('STERILIZER_GEA.webp',other)).status,200);
@@ -29,7 +29,9 @@ try {
   const event = report('FILL_EVENT',lines[0]);
   await call(op,'save',event);
   const sterileLineEvent = report('FILL_EVENT',lines[1]);
-  await call(spv,'save',sterileLineEvent);
+  await call(spv,'save',sterileLineEvent,403);
+  await call(admin,'account',{...filling,employee:'op-dua',productionLines:lines});
+  await call(await f.login('op-dua'),'save',sterileLineEvent);
   await call(other,'save',report('FILL_CIP',lines[1]),403);
   await call(op,'list',{...range,line:lines[1]},403);
   await call(other,'detail',{id:sterileLineEvent.id},404);
@@ -51,6 +53,6 @@ try {
   // Reapplication on an already populated database preserves assignments and reports.
   await f.db.exec(await readFile(new URL('../supabase/01_install.sql',import.meta.url),'utf8'));
   assert.equal((await call(spv,'detail',{id:event.id,line:lines[0]})).id,event.id);
-  assert.equal((await call(other,'me',{})).person.workArea,'Sterilizer');
+  assert.equal((await call(other,'me',{})).person.workArea,'Sterilizer - Aseptic Tank');
   console.log('OK instal ulang skema pada database berisi laporan dan penugasan');
 } finally {await f.close();}
