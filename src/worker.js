@@ -63,7 +63,7 @@ function safeConfig(env){
 }
 function supa(env,path,options={},pub=false){
  const key=pub?env.SUPABASE_PUBLISHABLE_KEY:env.SUPABASE_SECRET_KEY;
- return fetch(env.SUPABASE_URL+path,{...options,headers:{apikey:key,...(key.startsWith('eyJ')?{Authorization:'Bearer '+key}:{}),...options.headers},redirect:'error'});
+ return fetch(env.SUPABASE_URL+path,{...options,headers:{apikey:key,...(key.startsWith('eyJ')?{Authorization:'Bearer '+key}:{}),...options.headers},redirect:'manual'});
 }
 async function rpc(env,action,data,digest){
  const r=await supa(env,'/rest/v1/rpc/satu_gateway',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_action:action,p_data:data,p_session:digest})});
