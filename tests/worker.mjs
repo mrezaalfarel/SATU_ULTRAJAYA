@@ -25,7 +25,7 @@ try {
   const moduleId = crypto.randomUUID();
   const privateUrl = origin + '/private/PROCESS_MILK.svg';
   const ip = '192.0.2.10';
-  const local = { Cookie: operator, 'CF-Connecting-IP': ip };
+  const local = { Cookie: await login('op-proses'), 'CF-Connecting-IP': ip };
   const gated = { ...env, SITE_IP_ALLOWLIST: ip };
   assert.equal((await worker.fetch(new Request(privateUrl, { headers: { Cookie: operator } }), gated)).status, 403);
   assert.equal((await worker.fetch(new Request(privateUrl, { headers: local }), gated)).status, 200);

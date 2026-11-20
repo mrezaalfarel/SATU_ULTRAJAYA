@@ -14,5 +14,8 @@
       "/private/*",
       "/_worker.js"
     ]
+  },
+  "ai": {
+    "binding": "AI"
   }
 }

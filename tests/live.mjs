@@ -9,18 +9,20 @@ const f=await fixture();try{
  const c=(await f.post('live',{},a)).x;assert.equal(c.enabled,true);assert.ok(c.topic.startsWith('satu-'));assert.ok(!JSON.stringify(c).includes(f.env.SUPABASE_SECRET_KEY));
  const can=async t=>(await f.db.query('select public.satu_may_listen($1) v',[t])).rows[0].v;
  assert.equal(await can(c.topic),true);assert.equal(await can('satu-'+crypto.randomUUID()),false);
- const t=f.mod.clock(),d={id:crypto.randomUUID(),op:crypto.randomUUID(),version:0,type:'PRODUCTION_TOTAL',cook:0,doc:{meta:{date:t.day,shift:t.shift,unit:'Test'},sections:{}}};
+ const t=f.mod.clock(),d={id:crypto.randomUUID(),op:crypto.randomUUID(),version:0,type:'FILL_EVENT',cook:0,doc:{meta:{date:t.day,shift:t.shift,unit:'Test'},sections:{}}};
  assert.equal((await f.post('save',d,b)).status,200);const {rows}=await f.db.query('select * from realtime.messages');
  assert.deepEqual(rows,[{topic:c.topic,extension:'broadcast',event:'report_changed',data:{},private:true}]);
  // A session watching two production lines receives a distinct topic for each.
  const admin=await f.login('adm-uji');
- const reviewer={name:'Pengawas Uji',employee:'spv-live',active:true,productionLines:['Unit A','Unit B'],role:'pengawas',password:f.testPassword};
+ const reviewer={name:'Pengawas Uji',employee:'spv-live',active:true,productionLines:['Unit A','Unit B'],workArea:'Filling - Packing',role:'pengawas',password:f.testPassword};
  assert.equal((await f.post('account',reviewer,admin)).status,200);
  const reviewerSession=await f.login(reviewer.employee);
  const topicA=(await f.post('live',{line:'Unit A'},reviewerSession)).x.topic;
  const topicB=(await f.post('live',{line:'Unit B'},reviewerSession)).x.topic;
  assert.notEqual(topicA,topicB);
- const write=await f.post('save',{...d,id:crypto.randomUUID(),op:crypto.randomUUID(),line:'Unit A'},reviewerSession);
+ await f.post('account',{...reviewer,role:'operator',workArea:'Filling',employee:'op-live'},admin);
+ const assigned=await f.login('op-live');
+ const write=await f.post('save',{...d,id:crypto.randomUUID(),op:crypto.randomUUID(),line:'Unit A'},assigned);
  assert.equal(write.status,200);
  const topics=await f.db.query('select topic from realtime.messages where topic in ($1,$2)',[topicA,topicB]);
  assert.deepEqual(topics.rows,[{topic:topicA}]);

@@ -43,12 +43,7 @@ def build():
         shutil.copytree(ROOT / "pages", output)
         (output / "_worker.js").write_text(worker, encoding="utf-8")
         (output / "_routes.json").write_text(compact(routes), encoding="utf-8")
-        # Generate the database access rule from the same catalog the Worker serves.
-        def sql_literal(value):
-            return "'" + value.replace("'", "''") + "'"
-        areas = "\n".join(f"when {sql_literal(form['id'])} then {sql_literal(form['area'])}" for form in catalog)
-        schema = source("schema.sql").replace("-- INSERT_CATALOG_AREAS", areas)
-        (stage / "01_install.sql").write_text(schema + "\n" + source("services.sql"), encoding="utf-8")
+        (stage / "01_install.sql").write_text(source("schema.sql") + "\n" + source("services.sql"), encoding="utf-8")
         with zipfile.ZipFile(stage / ARCHIVE_NAME, "w") as archive:
             for asset in sorted(output.rglob("*")):
                 if asset.is_file():

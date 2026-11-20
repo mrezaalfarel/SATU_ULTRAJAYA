@@ -4,7 +4,13 @@ import {fixture} from './fixture.mjs';
 
 const f = await fixture();
 try {
-  const operator = await f.login('op-uji'), supervisor = await f.login('spv-uji'), admin = await f.login('adm-uji');
+  const staffByArea = {
+    Filling:['op-uji','spv-uji'], Packing:['op-packing','spv-uji'],
+    Sterilizer:['op-steril','spv-steril'], 'Aseptic Tank':['op-steril','spv-steril'],
+    Proses:['op-proses','spv-proses']
+  };
+  const tokens = {};
+  for(const user of new Set([...Object.values(staffByArea).flat(),'mgmt-uji','adm-uji'])) tokens[user]=await f.login(user);
   const clock = f.mod.clock();
   function sample(field) {
     if (field.options) return String(field.options.find(option=>String(option).length));
@@ -20,8 +26,9 @@ try {
     const values = Object.fromEntries(group.fields.filter(x=>!x.computed).map(x=>[x.key,sample(x)]));
     if (form.id==='PRODUCTION_TOTAL') Object.assign(values,{target:'10',actual:'10',good:'9',reject:'1'});
     const doc = {meta,sections:{[group.id]:{[group.kind==='hourly'?clock.hour:'1']:values}}};
-    const author = form.id==='SUPERVISOR_DAILY'?supervisor:operator;
-    const reviewer = form.id==='SUPERVISOR_DAILY'?admin:supervisor;
+    const [authorName,reviewerName]=['SUPERVISOR_DAILY','PRODUCTION_TOTAL'].includes(form.id)
+      ? ['mgmt-uji','adm-uji'] : staffByArea[form.area];
+    const author=tokens[authorName],reviewer=tokens[reviewerName];
     let version = 0;
     for (const action of ['save','submit','approve']) {
       const r = await f.post(action,{doc,type:form.id,cook:form.id==='PROCESS_MILK'?1:0,id,version,op:crypto.randomUUID()},action==='approve'?reviewer:author);
