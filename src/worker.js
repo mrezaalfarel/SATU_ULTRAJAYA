@@ -283,5 +283,15 @@ async function authChange(env,id,password){
  const r=await supa(env,'/auth/v1/admin/users/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});
  if(!r.ok)fail('Perubahan kata sandi ditolak oleh layanan Auth.',422);
 }
-export default {async fetch(request,env){try{return await handle(request,env);}catch(e){return json({error:e instanceof Problem?e.message:'Layanan sementara tidak tersedia. Coba kembali.'},e instanceof Problem?e.status:503);}}};
+function logUnexpectedError(error){
+ const knownNames=['Error','TypeError','ReferenceError','SyntaxError','RangeError','DOMException'];
+ const name=knownNames.includes(error?.name)?error.name:'UnknownError';
+ const frames=String(error?.stack||'').split('\n').slice(1,7).map(frame=>{
+  const location=frame.match(/:(\d+):(\d+)\)?\s*$/);
+  const functionName=frame.match(/^\s*at\s+(?:async\s+)?([A-Za-z_$][\w.$]*)\s+\(/);
+  return {function:functionName?.[1]||'anonymous',line:location?Number(location[1]):null,column:location?Number(location[2]):null};
+ });
+ console.error(JSON.stringify({event:'satu_unexpected_error',diagnostics:'v1',name,frames}));
+}
+export default {async fetch(request,env){try{return await handle(request,env);}catch(e){if(!(e instanceof Problem))logUnexpectedError(e);return json({error:e instanceof Problem?e.message:'Layanan sementara tidak tersedia. Coba kembali.'},e instanceof Problem?e.status:503);}}};
 
