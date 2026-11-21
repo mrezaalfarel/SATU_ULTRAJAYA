@@ -15,6 +15,20 @@ try{
   const bad={...env,SITE_LAT:''};assert.throws(()=>mod.geofence(bad,geo));operator=await login('op-uji');supervisor=await login('spv-uji');admin=await login('adm-uji');quality=await login('qc-uji');management=await login('mgmt-uji');processOperator=await login('op-proses');processReviewer=await login('spv-proses');
   assert.equal((await expect('me',{},operator,200)).person.role,'operator');
  });
+ await ok('Riwayat pribadi dan pengumuman berdasarkan periode, role dan area',async()=>{
+  const thread=id();
+  await expect('ask',{q:'Referensi kerja',thread,mode:'auto'},operator,200);
+  assert.equal((await expect('chat_read',{thread},operator,200))[0].question,'Referensi kerja');
+  assert.deepEqual(await expect('chat_read',{thread},admin,200),[]);
+  assert.ok((await expect('chat_list',{},operator,200)).some(x=>x.thread===thread));
+  const note={id:id(),title:'Handover',body:'Catatan shift',target_area:'Filling',target_role:'operator',starts:t.day,ends:t.day,active:true};
+  await expect('notice_save',note,management,200);
+  const visible=async token=>(await expect('notices',{},token,200)).some(x=>x.id===note.id);
+  assert.ok(await visible(operator));assert.ok(!await visible(processOperator));assert.ok(!await visible(supervisor));
+  await expect('notice_manage',{},operator,403);
+  await expect('notice_save',{...note,starts:'2099-01-01',ends:'2099-01-01'},management,200);
+  assert.ok(!await visible(operator));
+ });
  await ok('Semua 14 formulir dapat dibuat, disimpan dan dibaca melalui API',async()=>{
   const got=await expect('catalog',{},admin,200);assert.equal(got.length,14);assert.equal(got.reduce((n,x)=>n+x.sections.length,0),57);
   for(const def of got){const sample=document(def.id,t.day,t.shift,def.id==='PROCESS_MILK'?'1':'uji-'+def.id,{});if(def.id==='PROCESS_MILK')sample.cook=1; for(const fld of def.meta.filter(f=>f.required)){if(!sample.doc.meta[fld.key])sample.doc.meta[fld.key]=fld.options?.find(Boolean)||(fld.key==='stlz'?'Q':'1');}

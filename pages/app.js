@@ -5,8 +5,13 @@ const navigation = {
  id: {dashboard:'Dashboard', reports:'Laporan produksi', trace:'Penelusuran data', education:'Pusat belajar', ask:'AI Corner', management:'Area manajemen', settings:'Pengaturan'},
  en: {dashboard:'Dashboard', reports:'Production reports', trace:'Trace records', education:'Education Corner', ask:'AI Corner', management:'Management area', settings:'Settings'}
 };
-const language=()=>localStorage.getItem('satu-nav-language')==='en'?'en':'id';
-const locale=()=>language()==='en'?'en-GB':'id-ID';
+for(const [lang,labels] of Object.entries({
+ ja:['ダッシュボード','生産報告','追跡','学習センター','AI センター','管理','設定'],
+ ko:['대시보드','생산 보고','이력 조회','학습 센터','AI 센터','관리','설정'],
+ zh:['仪表板','生产报告','数据追踪','学习中心','AI 中心','管理','设置']
+}))navigation[lang]=Object.fromEntries(Object.keys(navigation.id).map((key,i)=>[key,labels[i]]));
+const language=()=>{const lang=localStorage.getItem('satu-nav-language');return Object.hasOwn(navigation,lang)?lang:'id';};
+const locale=()=>({id:'id-ID',en:'en-GB',ja:'ja-JP',ko:'ko-KR',zh:'zh-CN'})[language()];
 const icons={dashboard:'▦',reports:'▤',trace:'⌕',education:'▧',ask:'✧',management:'▣',settings:'⚙'};
 const statusNames={DRAFT:'Draf',PENDING:'Menunggu persetujuan',APPROVED:'Disetujui',REVISION:'Perlu revisi',ARCHIVED:'Diarsipkan'};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -35,7 +40,7 @@ function roleName(role){return ({admin:'Admin',operator:'Operator',pengawas:'Pen
 function applyPrefs(){document.documentElement.classList.toggle('dark',localStorage.getItem('satu-theme')==='dark');document.documentElement.classList.toggle('dense',localStorage.getItem('satu-density')==='dense');}
 function menuState(){const mobile=matchMedia('(max-width:720px)').matches;$('#menu').setAttribute('aria-expanded',String(mobile?$('#shell').classList.contains('mobile-open'):!$('#shell').classList.contains('collapsed')));}
 async function enter(session){
- Object.assign(app,session);app.catalog=await api('catalog');$('#login').hidden=true;$('#shell').hidden=false;
+ app.chatMemory={thread:null,left:0};Object.assign(app,session);app.catalog=await api('catalog');$('#login').hidden=true;$('#shell').hidden=false;
  const lineHost=$('#line');
  lineHost.textContent=app.line;
  const lines=app.person.productionLines||[];
@@ -125,13 +130,13 @@ function askDialog(title,action='Lanjutkan',withNote=false){
 async function canLeave(){return !app.isDirty?.()||await askDialog('Tinggalkan perubahan yang belum disimpan?','Tinggalkan');}
 async function go(key,args={},force=false){
  if(!app.person||(!force&&!await canLeave()))return;
- app.cleanup?.();app.cleanup=null;app.isDirty=null;app.captureDraft=null;app.route=key;const e=++epoch;$('#shell').classList.remove('mobile-open');menuState();
+ app.cleanup?.();app.cleanup=null;app.isDirty=null;app.captureDraft=null;app.route=key;const e=++epoch;$('#shell').classList.add('collapsed');$('#shell').classList.remove('mobile-open');menuState();
  const names=navigation[language()],actual=['edit','downtime'].includes(key)?'reports':key==='detail'?'trace':key;$('#breadcrumb').textContent=names[actual];
  document.title=(names[actual]||'Laporan')+' · SATU ULTRAJAYA';$('#nav').querySelectorAll('[data-go]').forEach(b=>b.setAttribute('aria-current',b.dataset.go===actual?'page':'false'));
  const reportNav=$('#nav .report-nav');
  if(reportNav&&actual==='reports')reportNav.open=true;
  for(const b of document.querySelectorAll('#nav [data-area]'))b.setAttribute('aria-current',key==='reports'&&b.dataset.area===args.area?'page':'false');
- const host=document.createElement('section');$('#main').replaceChildren(host);host.innerHTML='<p class="muted">Memuat…</p>';$('#main').focus({preventScroll:true});window.scrollTo(0,0);
+ const host=document.createElement('section');$('#main').replaceChildren(host);host.innerHTML='<p role="status" class="portal-loader">Memuat…</p>';$('#main').focus({preventScroll:true});window.scrollTo(0,0);
  try{if(key==='dashboard')await dashboard(host);
  else if(['reports','edit','trace','detail','downtime'].includes(key)){const m=await import('/report.js');if(e===epoch)await m.render(key,host,args);}
  else{const m=await import('/support.js');if(e===epoch)await m.render(key,host,args);}
@@ -175,7 +180,7 @@ async function dashboard(host){
     ...(hasTotal?['<section class="panel"><h3>Produk baik per hari</h3>'+bars(d.days,true)+'</section>']:[]),
     ...(hasEvent?['<section class="panel"><h3>Top Quality Issue</h3>'+bars(d.issues,false)+'</section>']:[])
    ];
-   results.innerHTML=`${cards.length?'<div class="grid kpis">'+cards.join('')+'</div>':''}${charts.length?'<div class="columns">'+charts.join('')+'</div>':''}<section class="panel"><div class="spread"><div><h3>Persetujuan laporan</h3><p>${fmt(d.pending)} menunggu persetujuan dari ${fmt(d.reports)} laporan periode ini.</p></div><button class="outline" id="queue">Lihat antrean →</button></div></section><section class="panel"><h3>Pengumuman</h3>${notices.filter(x=>x.active).slice(0,4).map(x=>'<div class="book"><div><strong>'+esc(x.title)+'</strong><p class="note">'+esc(x.body)+'</p></div></div>').join('')||'<p class="muted">Belum ada pengumuman aktif.</p>'}</section><p><small><span class="live-state">${live?'Live antarperangkat':'Penyegaran berkala 60 detik'}</span> · Diperbarui ${esc(new Date(Date.now()+serverOffset).toLocaleTimeString(locale(),{timeZone:'Asia/Jakarta'}))} WIB</small></p>`;
+   results.innerHTML=`${cards.length?'<div class="grid kpis">'+cards.join('')+'</div>':''}${charts.length?'<div class="columns">'+charts.join('')+'</div>':''}<section class="panel"><div class="spread"><div><h3>Persetujuan laporan</h3><p>${fmt(d.pending)} menunggu persetujuan dari ${fmt(d.reports)} laporan periode ini.</p></div><button class="outline" id="queue">Lihat antrean →</button></div></section><section class="panel"><details class="notice-bell"><summary>🔔 Satu Informasi · ${notices.length}</summary>${notices.filter(x=>x.active).map(x=>'<div class="book"><div><strong>'+esc(x.title)+'</strong><p class="note">'+esc(x.body)+'</p></div></div>').join('')||'<p class="muted">Belum ada pengumuman aktif.</p>'}</details></section><p><small><span class="live-state">${live?'Live antarperangkat':'Penyegaran berkala 60 detik'}</span> · Diperbarui ${esc(new Date(Date.now()+serverOffset).toLocaleTimeString(locale(),{timeZone:'Asia/Jakarta'}))} WIB</small></p>`;
    onBtn(results,'#queue',()=>go('trace',{status:'PENDING',from:range.from,to:range.to}));
   }finally{pending=false;if(queued&&host.isConnected){queued=false;await update();}}
  }
