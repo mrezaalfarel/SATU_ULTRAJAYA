@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/pilot.mjs && node tests/print.mjs && node tests/live.mjs && node tests/worker.mjs && node tests/assignments.mjs && node tests/forms.mjs",
+    "test": "node tests/pilot.mjs && node tests/print.mjs && node tests/live.mjs && node tests/worker.mjs && node tests/assignments.mjs && node tests/forms.mjs && node tests/ai.mjs && node tests/roles.mjs && node tests/export.mjs",
     "test:size": "node tests/size.mjs",
     "test:browser": "node tests/browser.mjs",
     "pretest:browser": "python3 src/build.py"

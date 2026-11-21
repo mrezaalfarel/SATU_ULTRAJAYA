@@ -29,7 +29,9 @@ function busy(el,fn){return async e=>{e?.preventDefault();if(el.disabled)return;
 function onBtn(root,selector,fn){root.querySelectorAll(selector).forEach(el=>el.addEventListener('click',busy(el,()=>fn(el))));}
 function signedOut(){++epoch;for(const d of document.querySelectorAll('dialog[open]'))d.close('cancel');app.cleanup?.();app.cleanup=null;app.isDirty=null;app.captureDraft=null;app.person=null;app.catalog=[];app.line='';$('#shell').hidden=true;$('#login').hidden=false;$('#main').replaceChildren();$('#printRoot').replaceChildren();$('#loginForm').reset();$('#loginForm').elements.password.type='password';$('#showPass').textContent='Lihat';$('#shell').classList.remove('mobile-open');$('#loginStatus').hidden=true;document.title='SATU ULTRAJAYA · Masuk';}
 function adminArea(){return ['admin','management'].includes(app.person?.role);}
-function mayReview(){return ['admin','pengawas','management'].includes(app.person?.role);}
+function approvalOnly(){return ['pengawas','foreman'].includes(app.person?.role);}
+function mayReview(){return approvalOnly()||adminArea();}
+function roleName(role){return ({admin:'Admin',operator:'Operator',pengawas:'Pengawas',foreman:'Foreman',qc:'QC',qa:'QA',ci:'CI',management:'Manajemen'})[role]||role;}
 function applyPrefs(){document.documentElement.classList.toggle('dark',localStorage.getItem('satu-theme')==='dark');document.documentElement.classList.toggle('dense',localStorage.getItem('satu-density')==='dense');}
 function menuState(){const mobile=matchMedia('(max-width:720px)').matches;$('#menu').setAttribute('aria-expanded',String(mobile?$('#shell').classList.contains('mobile-open'):!$('#shell').classList.contains('collapsed')));}
 async function enter(session){
@@ -48,19 +50,50 @@ async function enter(session){
     if(!await canLeave())return;
     if(app.writePending){toast('Tunggu proses simpan selesai.');return;}
     app.line=next;
-    await go('dashboard',{},true);
+    if(!await restoreDraft())await go('dashboard',{},true);
    }finally{select.value=app.line;select.disabled=false;}
   };
   lineHost.replaceChildren(select);
  }
- $('#personName').textContent=app.person.name;$('#personRole').textContent=[app.person.role,app.person.workArea].filter(Boolean).join(' · ');$('#monogram').textContent=app.person.name.split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
+ $('#personName').textContent=app.person.name;$('#personRole').textContent=[roleName(app.person.role),app.person.workArea].filter(Boolean).join(' · ');$('#monogram').textContent=app.person.name.split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
  drawNavigation();menuState();if(!await restoreDraft())await go('dashboard',{},true);
+}
+const reportSections = {
+ 'Proses':['PROCESS_MILK','PROCESS_CIP_PAST'],
+ 'Sterilizer':['STERILIZER_GEA'],
+ 'Aseptic Tank':['ASEPTIC_GEA','ASEPTIC_CIP'],
+ 'Filling Machine':['FILL_PRODUCTION','FILL_EVENT','FILL_PACK','FILL_VOLUME','FILL_CIP'],
+ 'Packing':['PACKING_STRAW','PACKING_CBP'],
+ 'Supervisor':['downtime','PRODUCTION_TOTAL','SUPERVISOR_DAILY']
+};
+export function availableSections(){
+ const catalog=new Map(app.catalog.map(form=>[form.id,form]));
+ const result={};
+ for(const [area,ids] of Object.entries(reportSections)){
+  const forms=[];
+  for(const id of ids){
+   if(id==='downtime'){
+    if(catalog.has('FILL_EVENT'))forms.push({id,title:'Laporan Downtime'});
+   }else if(catalog.has(id)&&(id!=='SUPERVISOR_DAILY'||adminArea())){
+    const form=catalog.get(id);
+    forms.push({...form,title:({SUPERVISOR_DAILY:'DMS · Laporan harian',PRODUCTION_TOTAL:'Total produksi'})[id]||form.title});
+   }
+  }
+  if(forms.length)result[area]=forms;
+ }
+ return result;
 }
 function drawNavigation(){
  const lang=language(),names=navigation[lang],isEn=lang==='en';
  const nav=$('#nav');
  nav.lang=lang;
  nav.innerHTML=Object.keys(names).filter(k=>k!=='management'||adminArea()).map(k=>`<button class="navbtn" data-go="${k}"><span class="glyph" aria-hidden="true">${icons[k]}</span>${names[k]}</button>`).join('');
+ const reports=nav.querySelector('[data-go="reports"]');
+ const group=document.createElement('details');
+ group.className='report-nav';
+ group.innerHTML='<summary class="navbtn"><span class="glyph" aria-hidden="true">▤</span>'+names.reports+'</summary><div class="area-nav">'+Object.keys(availableSections()).map(area=>'<button type="button" data-area="'+esc(area)+'">'+esc(area)+'</button>').join('')+'</div>';
+ reports.replaceWith(group);
+ onBtn(group,'[data-area]',b=>go('reports',{area:b.dataset.area}));
  onBtn(nav,'[data-go]',b=>go(b.dataset.go));
  $('.nav-caption').textContent=isEn?'Workspace':'Ruang kerja';
  $('#logout').textContent=isEn?'Sign out':'Keluar dari akun';
@@ -76,7 +109,7 @@ function rememberDraft(){
 async function restoreDraft(){
  if(!temporaryDraft)return false;
  if(temporaryDraft.person!==app.person?.id){temporaryDraft=null;return false;}
- if(temporaryDraft.line!==app.line){temporaryDraft=null;return false;}
+ if(temporaryDraft.line!==app.line){if(!app.person.productionLines?.includes(temporaryDraft.line))temporaryDraft=null;return false;}
  const {args}=temporaryDraft;
  await go('edit',args,true);
  return true;
@@ -95,6 +128,9 @@ async function go(key,args={},force=false){
  app.cleanup?.();app.cleanup=null;app.isDirty=null;app.captureDraft=null;app.route=key;const e=++epoch;$('#shell').classList.remove('mobile-open');menuState();
  const names=navigation[language()],actual=['edit','downtime'].includes(key)?'reports':key==='detail'?'trace':key;$('#breadcrumb').textContent=names[actual];
  document.title=(names[actual]||'Laporan')+' · SATU ULTRAJAYA';$('#nav').querySelectorAll('[data-go]').forEach(b=>b.setAttribute('aria-current',b.dataset.go===actual?'page':'false'));
+ const reportNav=$('#nav .report-nav');
+ if(reportNav&&actual==='reports')reportNav.open=true;
+ for(const b of document.querySelectorAll('#nav [data-area]'))b.setAttribute('aria-current',key==='reports'&&b.dataset.area===args.area?'page':'false');
  const host=document.createElement('section');$('#main').replaceChildren(host);host.innerHTML='<p class="muted">Memuat…</p>';$('#main').focus({preventScroll:true});window.scrollTo(0,0);
  try{if(key==='dashboard')await dashboard(host);
  else if(['reports','edit','trace','detail','downtime'].includes(key)){const m=await import('/report.js');if(e===epoch)await m.render(key,host,args);}
@@ -104,9 +140,12 @@ async function go(key,args={},force=false){
 async function dashboard(host){
  const now=await api('clock');if(!host.isConnected)return;app.clock=now;const end=now.calendar;
  const serverOffset=Date.parse(now.stamp)-Date.now();let rolling=true,noticeTime=0,noticeCache=[];
- host.innerHTML=heading('Dashboard produksi','Perolehan dan kejadian dari laporan yang telah disetujui.','Ringkasan line','<button class="primary" id="newRpt">+ Buat laporan</button>')+
+ const canWrite=app.catalog.some(f=>f.id!=='SUPERVISOR_DAILY'||adminArea())&&!approvalOnly();
+ const action=canWrite?'<button class="primary" id="newRpt">+ Buat laporan</button>':approvalOnly()&&app.catalog.length?'<button class="primary" id="reviewQueue">Tinjau laporan</button>':'';
+ host.innerHTML=heading('Dashboard produksi','Perolehan dan kejadian dari laporan yang telah disetujui.','Ringkasan line',action)+
  `<form class="toolbar"><label>Dari tanggal<input name="from" type="date" value="${offset(end,-6)}" required></label><label>Sampai tanggal<input name="to" type="date" value="${end}" required></label><button class="outline">Tampilkan</button></form><div class="results"></div>`;
  onBtn(host,'#newRpt',()=>go('reports'));const form=host.querySelector('form'),results=host.querySelector('.results');let pending=false,queued=false,live=false;let filters=Object.fromEntries(new FormData(form));
+ onBtn(host,'#reviewQueue',()=>go('trace',{...filters,status:'PENDING'}));
  async function update(){
   if(!host.isConnected)return;
   if(pending){queued=true;return;}
@@ -127,7 +166,16 @@ async function dashboard(host){
    if(range!==filters)return;
    const card=(label,value,unit,detail)=>`<section class="card"><p class="kicker">${label}</p><strong>${fmt(value)} <small>${unit}</small></strong><small>${esc(detail)}</small></section>`;
    const bars=(rows,day)=>{if(!rows.length)return '<p class="empty">Belum ada data disetujui pada periode ini.</p>';const val=r=>Number(day?r.good:r.n),max=Math.max(1,...rows.map(val));return '<div class="barlist">'+rows.map(x=>`<div class="barrow"><span>${esc(day?dateLabel(x.day,true):x.key)}</span><div class="track"><i style="width:${100*val(x)/max}%"></i></div><strong>${fmt(val(x))}</strong></div>`).join('')+'</div>';};
-   results.innerHTML=`<div class="grid kpis">${card('Perolehan aktual',d.actual,'pak',d.target?fmt(Math.round(100*d.actual/d.target))+'% dari target':'Target belum tercatat')}${card('Produk baik',d.good,'pak',fmt(d.reject)+' pak reject')}${card('Planned downtime',d.planned,'menit','Event terencana')}${card('Unplanned downtime',d.unplanned,'menit','Termasuk short stop')}</div><div class="columns"><section class="panel"><h3>Produk baik per hari</h3>${bars(d.days,true)}</section><section class="panel"><h3>Top Quality Issue</h3>${bars(d.issues,false)}</section></div><section class="panel"><div class="spread"><div><h3>Persetujuan laporan</h3><p>${fmt(d.pending)} menunggu persetujuan dari ${fmt(d.reports)} laporan periode ini.</p></div><button class="outline" id="queue">Lihat antrean →</button></div></section><section class="panel"><h3>Pengumuman</h3>${notices.filter(x=>x.active).slice(0,4).map(x=>'<div class="book"><div><strong>'+esc(x.title)+'</strong><p class="note">'+esc(x.body)+'</p></div></div>').join('')||'<p class="muted">Belum ada pengumuman aktif.</p>'}</section><p><small><span class="live-state">${live?'Live antarperangkat':'Penyegaran berkala 60 detik'}</span> · Diperbarui ${esc(new Date(Date.now()+serverOffset).toLocaleTimeString(locale(),{timeZone:'Asia/Jakarta'}))} WIB</small></p>`;
+   const hasTotal=app.catalog.some(form=>form.id==='PRODUCTION_TOTAL'),hasEvent=app.catalog.some(form=>form.id==='FILL_EVENT');
+   const cards=[
+    ...(hasTotal?[card('Perolehan aktual',d.actual,'pak',d.target?fmt(Math.round(100*d.actual/d.target))+'% dari target':'Target belum tercatat'),card('Produk baik',d.good,'pak',fmt(d.reject)+' pak reject')]:[]),
+    ...(hasEvent?[card('Planned downtime',d.planned,'menit','Event terencana'),card('Unplanned downtime',d.unplanned,'menit','Termasuk short stop')]:[])
+   ];
+   const charts=[
+    ...(hasTotal?['<section class="panel"><h3>Produk baik per hari</h3>'+bars(d.days,true)+'</section>']:[]),
+    ...(hasEvent?['<section class="panel"><h3>Top Quality Issue</h3>'+bars(d.issues,false)+'</section>']:[])
+   ];
+   results.innerHTML=`${cards.length?'<div class="grid kpis">'+cards.join('')+'</div>':''}${charts.length?'<div class="columns">'+charts.join('')+'</div>':''}<section class="panel"><div class="spread"><div><h3>Persetujuan laporan</h3><p>${fmt(d.pending)} menunggu persetujuan dari ${fmt(d.reports)} laporan periode ini.</p></div><button class="outline" id="queue">Lihat antrean →</button></div></section><section class="panel"><h3>Pengumuman</h3>${notices.filter(x=>x.active).slice(0,4).map(x=>'<div class="book"><div><strong>'+esc(x.title)+'</strong><p class="note">'+esc(x.body)+'</p></div></div>').join('')||'<p class="muted">Belum ada pengumuman aktif.</p>'}</section><p><small><span class="live-state">${live?'Live antarperangkat':'Penyegaran berkala 60 detik'}</span> · Diperbarui ${esc(new Date(Date.now()+serverOffset).toLocaleTimeString(locale(),{timeZone:'Asia/Jakarta'}))} WIB</small></p>`;
    onBtn(results,'#queue',()=>go('trace',{status:'PENDING',from:range.from,to:range.to}));
   }finally{pending=false;if(queued&&host.isConnected){queued=false;await update();}}
  }
@@ -141,11 +189,11 @@ async function dashboard(host){
  const stop=watchDashboard(api,refresh,connected=>{live=connected;const label=host.querySelector('.live-state');if(label)label.textContent=live?'Live antarperangkat':'Penyegaran berkala 60 detik';});
  const t=setInterval(()=>{if(!document.hidden)refresh();},60000);app.cleanup=()=>{clearInterval(t);stop();};
 }
-export {app,api,go,esc,fmt,dateLabel,offset,tag,titleOf,heading,onBtn,busy,toast,adminArea,mayReview,statusNames,applyPrefs,signedOut,askDialog,language,locale,drawNavigation,releaseTemporaryDraft};
+export {app,api,go,esc,fmt,dateLabel,offset,tag,titleOf,heading,onBtn,busy,toast,adminArea,mayReview,approvalOnly,roleName,statusNames,applyPrefs,signedOut,askDialog,language,locale,drawNavigation,releaseTemporaryDraft};
 applyPrefs();
 $('#showPass').onclick=()=>{const p=$('#loginForm').elements.password;p.type=p.type==='password'?'text':'password';$('#showPass').textContent=p.type==='password'?'Lihat':'Sembunyi';};
 $('#menu').onclick=()=>{const cls=matchMedia('(max-width:720px)').matches?'mobile-open':'collapsed';$('#shell').classList.toggle(cls);menuState();};
-$('#logout').onclick=busy($('#logout'),async()=>{if(!await canLeave())return;await api('logout');signedOut();});
+$('#logout').onclick=busy($('#logout'),async()=>{if(!await canLeave())return;await api('logout');releaseTemporaryDraft();signedOut();});
 window.addEventListener('beforeunload',e=>{if(app.isDirty?.()){e.preventDefault();e.returnValue='';}});
 $('#loginForm').onsubmit=async e=>{e.preventDefault();const b=$('#enter'),m=$('#loginStatus'),form=e.currentTarget;if(b.disabled)return;b.disabled=true;m.hidden=false;m.className='message';m.textContent='Memeriksa lokasi perangkat…';
  try{if(!navigator.geolocation)throw Error('Lokasi belum tersedia. Gunakan browser yang mendukung lokasi melalui HTTPS.');

@@ -1,5 +1,5 @@
 create or replace function satu.support(a text,d jsonb,p satu.people) returns jsonb language plpgsql set search_path='' as $$
-declare result jsonb; item satu.modules; ident uuid; usr satu.people; rankrow satu.learning; q jsonb; ix integer; marks integer:=0; n integer;
+declare result jsonb; item satu.modules; ident uuid; usr satu.people; next_area text; next_lines text[]; next_supervisor uuid; next_role text; next_active boolean; rankrow satu.learning; q jsonb; ix integer; marks integer:=0; n integer;
 begin
  if a='auth_lookup' then
   if p.role<>'admin' then raise exception 'DENIED'; end if;
@@ -10,6 +10,11 @@ begin
   if p.role not in ('admin','management') then raise exception 'DENIED'; end if;
   insert into satu.notices(id,title,body,active,author) values(coalesce((d->>'id')::uuid,gen_random_uuid()),d->>'title',d->>'body',(d->>'active')::boolean,p.id)
   on conflict(id) do update set title=excluded.title,body=excluded.body,active=excluded.active returning id into ident;
+ elsif a='supervisors' then
+  if p.role<>'admin' then raise exception 'DENIED'; end if;
+  return (select coalesce(jsonb_agg(satu.person_view(x.u)||jsonb_build_object('productionLines',(x.u).production_lines) order by (x.u).employee),'[]') from
+    (select z as u from satu.people z where z.active and z.role='pengawas' and z.work_area=d->>'workArea'
+     and z.production_lines is not null and (d->>'after' is null or z.employee>d->>'after') order by z.employee limit 51) x);
  elsif a='people' then
   if p.role not in ('admin','management') then raise exception 'DENIED'; end if;
   return (select coalesce(jsonb_agg(satu.person_view(x.p)||jsonb_build_object('productionLines',(x.p).production_lines) order by (x.p).employee),'[]') from
@@ -23,24 +28,54 @@ begin
    if found and usr.role='admin' and ((d->>'role')<>'admin' or not (d->>'active')::boolean) and usr.active
     and not exists(select 1 from satu.people z where z.role='admin' and z.active and z.id<>ident) then raise exception 'LAST_ADMIN'; end if;
    if not exists(select 1 from auth.users where id=ident and email=(d->>'employee')||'@login.satu.invalid') then raise exception 'IDENTITY'; end if;
-   insert into satu.people(id,employee,name,role,active) values(ident,d->>'employee',d->>'name',d->>'role',(d->>'active')::boolean)
-   on conflict(id) do update set name=excluded.name,role=excluded.role,active=excluded.active;
-   if d ? 'workArea' then
-    update satu.people set work_area=d->>'workArea' where id=ident;
+   next_role:=d->>'role';
+   next_active:=(d->>'active')::boolean;
+   next_area:=case when next_role in ('operator','pengawas','foreman') then
+     case when d ? 'workArea' then d->>'workArea' when usr.role=next_role then usr.work_area end end;
+   next_lines:=case when not d ? 'productionLines' then usr.production_lines
+      when jsonb_typeof(d->'productionLines')='array' then array(select jsonb_array_elements_text(d->'productionLines')) end;
+   next_supervisor:=case when next_role='foreman' then
+     case when d ? 'supervisorId' then (d->>'supervisorId')::uuid else usr.supervisor_id end end;
+   if next_active and next_role in ('operator','pengawas','foreman')
+    and (cardinality(satu.assignment_forms(next_role,next_area))=0 or next_lines is null or not satu.valid_lines(next_lines)) then
+    raise exception 'ASSIGNMENT_REQUIRED';
    end if;
-   if d ? 'productionLines' then
-    update satu.people set production_lines=case when jsonb_typeof(d->'productionLines')='array'
-      then array(select jsonb_array_elements_text(d->'productionLines')) else null end where id=ident;
+   if next_role='foreman' and next_active then
+    if next_supervisor=ident or not exists(select 1 from satu.people u where u.id=next_supervisor
+      and u.active and u.role='pengawas' and u.work_area=next_area and u.production_lines @> next_lines) then
+     raise exception 'SUPERVISOR_ASSIGNMENT';
+    end if;
+    if (select count(*) from satu.people where role='foreman' and active and supervisor_id=next_supervisor and id<>ident)>=4 then
+     raise exception 'FOREMAN_LIMIT';
+    end if;
    end if;
+   if exists(select 1 from satu.people f where f.role='foreman' and f.active and f.supervisor_id=ident
+      and (not next_active or next_role<>'pengawas' or f.work_area is distinct from next_area
+           or not coalesce(next_lines @> f.production_lines,false))) then raise exception 'TEAM_ASSIGNED'; end if;
+   insert into satu.people(id,employee,name,role,active,work_area,production_lines,supervisor_id)
+    values(ident,d->>'employee',d->>'name',next_role,next_active,next_area,next_lines,next_supervisor)
+    on conflict(id) do update set name=excluded.name,role=excluded.role,active=excluded.active,work_area=excluded.work_area,
+       production_lines=excluded.production_lines,supervisor_id=excluded.supervisor_id;
   elsif not exists(select 1 from satu.people where id=ident) then raise exception 'MISSING'; end if;
   delete from satu.sessions where person=ident;
  elsif a='leaderboard' then
-  return (select coalesce(jsonb_agg(to_jsonb(x) order by x.seconds desc,x.name),'[]') from
-   (select u.name,sum(l.seconds) seconds,sum(l.visits) visits,count(*) filter(where l.completed) completed from satu.learning l join satu.people u on u.id=l.person where u.active group by u.id,u.name order by seconds desc,u.name limit 10) x);
+  return (with totals as (
+   select u.id,u.name,sum(l.seconds) seconds,sum(l.visits) visits,
+          coalesce(sum(l.score),0) points,count(l.score) quizzes,count(*) filter(where l.completed) completed
+   from satu.learning l join satu.people u on u.id=l.person where u.active group by u.id,u.name
+  ), ranked as (
+   select *,case d->>'sort' when 'points' then points when 'visits' then visits else seconds end metric
+   from totals where coalesce(d->>'sort','')<>'points' or quizzes>0
+   order by metric desc,name,id limit 10
+  ) select coalesce(jsonb_agg(to_jsonb(ranked)-'id'-'metric' order by metric desc,name,id),'[]') from ranked);
  elsif a='modules' then
   return (select coalesce(jsonb_agg(to_jsonb(x) order by x.title,x.id),'[]') from
    (select m.id,m.title,m.category,m.revision,m.active,m.manual,m.attachment is not null as has_file,l.seconds,l.completed,l.score from satu.modules m left join satu.learning l on l.module=m.id and l.person=p.id
-    where (m.active or p.role in ('admin','management')) and (nullif(d->>'after','') is null or (m.title,m.id)>(d->>'after',(d->>'after_id')::uuid)) order by m.title,m.id limit 51) x);
+    where (m.active or p.role in ('admin','management'))
+      and (nullif(d->>'category','') is null or m.category=d->>'category'
+        or (d->>'category'='Tutorial' and m.category in ('Book','Video'))
+        or (d->>'category'='Mini Quiz' and jsonb_array_length(m.questions)>0))
+      and (nullif(d->>'after','') is null or (m.title,m.id)>(d->>'after',(d->>'after_id')::uuid)) order by m.title,m.id limit 51) x);
  elsif a='manual_search' then
   return (select coalesce(jsonb_agg(to_jsonb(x) order by x.rank desc,x.title),'[]') from (select m.id,m.title,m.revision,ts_headline('simple',m.body,t.q,'StartSel=, StopSel=, MaxWords=55, MinWords=20, MaxFragments=3') excerpt, ts_rank(m.search,t.q) rank
    from satu.modules m cross join lateral (select to_tsquery('simple',coalesce(string_agg(quote_literal(word),' | '),'')) q from unnest(tsvector_to_array(to_tsvector('simple',d->>'q'))) as w(word) where length(word)>1 and word not in ('apa','apakah','bagaimana','cara','saya','kita','yang','dengan','pada','untuk','dan','di','ke','dari','ini','itu','berapa','mengenai','tolong')) t where m.active and m.manual and m.search @@ t.q order by rank desc,m.title limit 5) x);
@@ -63,7 +98,7 @@ begin
    select * into rankrow from satu.learning where person=p.id and module=item.id for update;
    if not found then raise exception 'MISSING'; end if;
    if a='heartbeat' then
-    update satu.learning set seconds=seconds+greatest(0,least(40,floor(extract(epoch from (now()-last_seen)))::int)),last_seen=now() where person=p.id and module=item.id;
+    update satu.learning set seconds=seconds+greatest(0,least(40,coalesce((d->>'seconds')::int,40),floor(extract(epoch from (now()-last_seen)))::int)),last_seen=now() where person=p.id and module=item.id;
    elsif a='finish' then
     if jsonb_array_length(item.questions)>0 and coalesce(rankrow.score,0)<70 then raise exception 'QUIZ_REQUIRED'; end if;
     update satu.learning set completed=true where person=p.id and module=item.id;
@@ -114,6 +149,7 @@ begin
  if p_action='me' then return satu.person_view(p)||jsonb_build_object('productionLines',p.production_lines);
 
  elsif p_action='prepare_edit' then
+  if p.role in ('pengawas','foreman') then raise exception 'DENIED'; end if;
   return jsonb_build_object('person',satu.person_view(p),
    'replay',(select jsonb_build_object('id',x.report_id,'version',x.version,'replayed',true) from satu.operations x where x.op=(p_data->>'op')::uuid and x.actor=p.id and x.report_id=(p_data->>'id')::uuid and x.action=p_data->>'action'
     and exists(select 1 from satu.reports r where r.id=x.report_id and r.line=selected_line and satu.form_allowed(p,r.type))),
