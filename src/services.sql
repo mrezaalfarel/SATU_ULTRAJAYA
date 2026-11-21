@@ -4,12 +4,32 @@ begin
  if a='auth_lookup' then
   if p.role<>'admin' then raise exception 'DENIED'; end if;
   return (select jsonb_build_object('id',u.id,'linked',exists(select 1 from satu.people sp where sp.id=u.id)) from auth.users u where u.email=(d->>'employee')||'@login.satu.invalid');
- elsif a='notices' then
-  return (select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc),'[]') from (select id,title,body,active,created_at from satu.notices where active or p.role in ('admin','management') order by created_at desc limit 40) x);
+ elsif a='chat_save' then
+  insert into satu.chat_turns(person,thread,question,answer) values(p.id,(d->>'thread')::uuid,d->>'q',d->'answer');
+  return 'true';
+ elsif a='chat_list' then
+  return (select coalesce(jsonb_agg(to_jsonb(x) order by x.updated desc),'[]') from (
+   select thread,(array_agg(question order by created_at,id))[1] title,max(created_at) updated
+   from satu.chat_turns where person=p.id group by thread order by updated desc limit 100) x);
+ elsif a='chat_read' then
+  return (select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at,x.id),'[]') from (
+   select id,question,answer,created_at from satu.chat_turns where person=p.id and thread=(d->>'thread')::uuid
+   order by created_at desc,id desc limit 100) x);
+ elsif a in ('notices','notice_manage') then
+  if a='notice_manage' and p.role not in ('admin','management') then raise exception 'DENIED'; end if;
+  return (select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc),'[]') from
+   (select id,title,body,active,created_at,starts,ends,target_role,target_area from satu.notices
+    where a='notice_manage' or (active and (starts is null or starts<=(now() at time zone 'Asia/Jakarta')::date)
+     and (ends is null or ends>=(now() at time zone 'Asia/Jakarta')::date)
+     and (target_role is null or target_role=p.role) and (target_area is null or target_area=p.work_area))
+    order by created_at desc limit 40) x);
  elsif a='notice_save' then
   if p.role not in ('admin','management') then raise exception 'DENIED'; end if;
-  insert into satu.notices(id,title,body,active,author) values(coalesce((d->>'id')::uuid,gen_random_uuid()),d->>'title',d->>'body',(d->>'active')::boolean,p.id)
-  on conflict(id) do update set title=excluded.title,body=excluded.body,active=excluded.active returning id into ident;
+  insert into satu.notices(id,title,body,active,author,starts,ends,target_role,target_area)
+  values(coalesce((d->>'id')::uuid,gen_random_uuid()),d->>'title',d->>'body',(d->>'active')::boolean,p.id,
+    nullif(d->>'starts','')::date,nullif(d->>'ends','')::date,nullif(d->>'target_role',''),nullif(d->>'target_area',''))
+  on conflict(id) do update set title=excluded.title,body=excluded.body,active=excluded.active,starts=excluded.starts,
+   ends=excluded.ends,target_role=excluded.target_role,target_area=excluded.target_area returning id into ident;
  elsif a='supervisors' then
   if p.role<>'admin' then raise exception 'DENIED'; end if;
   return (select coalesce(jsonb_agg(satu.person_view(x.u)||jsonb_build_object('productionLines',(x.u).production_lines) order by (x.u).employee),'[]') from
@@ -70,25 +90,25 @@ begin
   ) select coalesce(jsonb_agg(to_jsonb(ranked)-'id'-'metric' order by metric desc,name,id),'[]') from ranked);
  elsif a='modules' then
   return (select coalesce(jsonb_agg(to_jsonb(x) order by x.title,x.id),'[]') from
-   (select m.id,m.title,m.category,m.revision,m.active,m.manual,m.attachment is not null as has_file,l.seconds,l.completed,l.score from satu.modules m left join satu.learning l on l.module=m.id and l.person=p.id
+   (select m.id,m.title,m.doc_no,m.doc_area,m.category,m.revision,m.active,m.manual,m.attachment is not null as has_file,l.seconds,l.completed,l.score from satu.modules m left join satu.learning l on l.module=m.id and l.person=p.id
     where (m.active or p.role in ('admin','management'))
       and (nullif(d->>'category','') is null or m.category=d->>'category'
         or (d->>'category'='Tutorial' and m.category in ('Book','Video'))
         or (d->>'category'='Mini Quiz' and jsonb_array_length(m.questions)>0))
       and (nullif(d->>'after','') is null or (m.title,m.id)>(d->>'after',(d->>'after_id')::uuid)) order by m.title,m.id limit 51) x);
  elsif a='manual_search' then
-  return (select coalesce(jsonb_agg(to_jsonb(x) order by x.rank desc,x.title),'[]') from (select m.id,m.title,m.revision,ts_headline('simple',m.body,t.q,'StartSel=, StopSel=, MaxWords=55, MinWords=20, MaxFragments=3') excerpt, ts_rank(m.search,t.q) rank
-   from satu.modules m cross join lateral (select to_tsquery('simple',coalesce(string_agg(quote_literal(word),' | '),'')) q from unnest(tsvector_to_array(to_tsvector('simple',d->>'q'))) as w(word) where length(word)>1 and word not in ('apa','apakah','bagaimana','cara','saya','kita','yang','dengan','pada','untuk','dan','di','ke','dari','ini','itu','berapa','mengenai','tolong')) t where m.active and m.manual and m.search @@ t.q order by rank desc,m.title limit 5) x);
+  return (select coalesce(jsonb_agg(to_jsonb(x) order by x.rank desc,x.title),'[]') from (select m.id,m.title,m.revision,ts_headline('simple',concat_ws(' ',m.doc_no,m.title,m.body,m.extracted),t.q,'StartSel=, StopSel=, MaxWords=55, MinWords=20, MaxFragments=3') excerpt, greatest(ts_rank(m.search,t.q),ts_rank(to_tsvector('simple',m.extracted),t.q)) rank
+   from satu.modules m cross join lateral (select to_tsquery('simple',coalesce(string_agg(quote_literal(word),' | '),'')) q from unnest(tsvector_to_array(to_tsvector('simple',d->>'q'))) as w(word) where length(word)>1 and word not in ('apa','apakah','bagaimana','cara','saya','kita','yang','dengan','pada','untuk','dan','di','ke','dari','ini','itu','berapa','mengenai','tolong')) t where m.active and m.manual and (m.search @@ t.q or to_tsvector('simple',m.extracted) @@ t.q) order by rank desc,m.title limit 5) x);
  elsif a='module_save' then
   if p.role not in ('admin','management') then raise exception 'DENIED'; end if;
   ident:=(d->>'id')::uuid;
-  insert into satu.modules(id,title,category,body,revision,active,manual,questions,attachment,author) values(ident,d->>'title',d->>'category',d->>'body',d->>'revision',(d->>'active')::boolean,(d->>'manual')::boolean,d->'questions',nullif(d->>'attachment',''),p.id)
-   on conflict(id) do update set title=excluded.title,category=excluded.category,body=excluded.body,revision=excluded.revision,active=excluded.active,manual=excluded.manual,questions=excluded.questions,attachment=excluded.attachment,updated_at=now();
+  insert into satu.modules(id,title,category,body,revision,active,manual,questions,attachment,author,doc_no,doc_area,extracted) values(ident,d->>'title',d->>'category',d->>'body',d->>'revision',(d->>'active')::boolean,(d->>'manual')::boolean,d->'questions',nullif(d->>'attachment',''),p.id,coalesce(d->>'doc_no',''),coalesce(d->>'doc_area','General'),coalesce(d->>'extracted',''))
+   on conflict(id) do update set title=excluded.title,category=excluded.category,body=excluded.body,revision=excluded.revision,active=excluded.active,manual=excluded.manual,questions=excluded.questions,attachment=excluded.attachment,extracted=case when d ? 'extracted' or excluded.attachment is distinct from satu.modules.attachment then excluded.extracted else satu.modules.extracted end,doc_no=excluded.doc_no,doc_area=excluded.doc_area,updated_at=now();
  elsif a in ('module','visit','heartbeat','finish','quiz') then
   select * into item from satu.modules where id=(d->>'id')::uuid and (active or p.role in ('admin','management')) for share;
   if not found then raise exception 'MISSING'; end if;
   if a='module' then
-   return jsonb_build_object('id',item.id,'title',item.title,'category',item.category,'body',item.body,'revision',item.revision,'active',item.active,'manual',item.manual,'attachment',item.attachment,'questions',
+   return jsonb_build_object('id',item.id,'title',item.title,'category',item.category,'body',item.body,'doc_no',item.doc_no,'doc_area',item.doc_area,'revision',item.revision,'active',item.active,'manual',item.manual,'attachment',item.attachment,'questions',
     case when d->>'edit'='true' and p.role in ('admin','management') then item.questions else (select coalesce(jsonb_agg(x-'correct' order by ord),'[]') from jsonb_array_elements(item.questions) with ordinality as t(x,ord)) end);
   end if;
   if not item.active then raise exception 'DENIED'; end if;

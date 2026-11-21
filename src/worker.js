@@ -18,7 +18,7 @@ const errors={
  DATE_RANGE:[422,'Periode pencarian maksimal 367 tanggal kalender.'],IDENTITY:[422,'Identitas tersimpan berbeda. Buka laporan yang sesuai.'],
  NOTE_REQUIRED:[422,'Isi alasan untuk tindakan ini.'],LAST_ADMIN:[409,'Pertahankan sedikitnya satu admin aktif.'],QUIZ_REQUIRED:[422,'Nilai kuis minimal 70 untuk menyelesaikan modul.'],INPUT:[422,'Periksa kembali data yang dikirim.']
 };
-const headers={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','Permissions-Policy':'geolocation=(self), camera=(self), microphone=(self)','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' wss://*.supabase.co; media-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"};
+const headers={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','Permissions-Policy':'geolocation=(self), camera=(self), microphone=(self)','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' wss://*.supabase.co; media-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"};
 function json(v,status=200,extra={}){return Response.json(v,{status,headers:{...headers,...extra}});}
 function sha(bytes){return crypto.subtle.digest('SHA-256',bytes).then(x=>Array.from(new Uint8Array(x),v=>v.toString(16).padStart(2,'0')).join(''));}
 function cookie(v,ttl=36000){return '__Host-satu='+v+'; Path=/; Max-Age='+ttl+'; Secure; HttpOnly; SameSite=Strict';}
@@ -45,11 +45,12 @@ function photoBytes(encoded){
 }
 function storageKey(s,id){if(!s)return '';if(typeof s!=='string'||!s.startsWith(id+'/')||!/^([0-9a-f-]{36})\/[0-9a-f-]{36}\.(pdf|png|jpg|mp4)$/.test(s))fail('Lampiran tidak valid.');return s;}
 function moduleData(d){
- const id=uuid(d.id);if(!['Instruksi Kerja','SOP','OPL','Tutorial','Mini Quiz','Book','Video'].includes(d.category))fail('Kategori modul tidak valid.');
+ const id=uuid(d.id);if(!['Instruksi Kerja','SOP','OPL','Tutorial','Mini Quiz','General','Book','Video'].includes(d.category))fail('Kategori modul tidak valid.');
  if(!Array.isArray(d.questions)||d.questions.length>20)fail('Maksimal 20 pertanyaan.');
  const qs=d.questions.map(q=>{if(!obj(q)||!Array.isArray(q.options)||q.options.length<2||q.options.length>5||!Number.isInteger(q.correct)||q.correct<0||q.correct>=q.options.length)fail('Periksa pilihan dan kunci jawaban kuis.');return {text:str(q.text,400,'pertanyaan',true),options:q.options.map(x=>str(x,200,'pilihan',true)),correct:q.correct};});
  if(d.category==='Mini Quiz'&&!d.questions.length)fail('Tambahkan sedikitnya satu soal pada Mini Quiz.');
- return {id,title:str(d.title,140,'judul',true),category:d.category,body:str(d.body,60000,'isi',true),revision:str(d.revision,40,'revisi',true),manual:d.manual===true,active:d.active===true,attachment:storageKey(d.attachment,id),questions:qs};
+ if(!['General','Processing','Filling-Packing','Cleaning','Other'].includes(d.doc_area||'General'))fail('Area dokumen tidak valid.');
+ return {id,doc_no:str(d.doc_no,100),doc_area:d.doc_area||'General',...(d.extracted!==undefined?{extracted:str(d.extracted,180000)}:{}),title:str(d.title,140,'judul',true),category:d.category,body:str(d.body,60000,'catatan'),revision:str(d.revision,40,'revisi',true),manual:d.manual!==false,active:d.active===true,attachment:storageKey(d.attachment,id),questions:qs};
 }
 function publishableKey(key){
  if(typeof key!=='string')return false;
@@ -106,7 +107,7 @@ async function askManual(env,run,d){
  if(hasPhoto&&!env.AI)fail('Analisis foto memerlukan binding Workers AI.',503);
  const bytes=hasPhoto?photoBytes(d.image):null;
  await gate(env,'ask:'+person.id,20);
- const general=(d.mode==='general'||Boolean(attachment))&&!hasPhoto;
+ let general=(d.mode==='general'||(d.mode!=='auto'&&Boolean(attachment)))&&!hasPhoto;
  const docs=general?[]:await run('manual_search',{q});
  if(!general&&history.length&&docs.length<5){
   const previous=await run('manual_search',{q:history.at(-1).question});
@@ -115,7 +116,22 @@ async function askManual(env,run,d){
    if(docs.length===5)break;
   }
  }
+ if(d.mode==='auto'&&!docs.length&&!hasPhoto)general=true;
  const result={docs,reply:'',notice:'',assessment:hasPhoto?'uncertain':null,vision:!!env.AI};
+ if(general&&env.GEMINI_API_KEY&&!history.length&&!attachment&&!hasPhoto&&d.mode==='auto'){
+  try{
+   const model=encodeURIComponent(env.GEMINI_MODEL||'gemini-2.5-flash-lite');
+   const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
+    method:'POST',redirect:'manual',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
+    body:JSON.stringify({systemInstruction:{parts:[{text:'Jawab dalam bahasa Indonesia tentang produksi susu secara umum. Rujuk ke SOP dan pengawas untuk keputusan mesin atau kualitas.'}]},contents:[{parts:[{text:q}]}],generationConfig:{maxOutputTokens:650}})
+   });
+   if(response.ok){
+    const data=await response.json();
+    result.reply=(data.candidates?.[0]?.content?.parts||[]).map(x=>x.text||'').join('').trim();
+    if(result.reply){result.notice='Pengetahuan umum · Gemini';return result;}
+   }
+  }catch{}
+ }
  if(!env.AI||(!general&&!docs.length&&!hasPhoto)){
   result.notice=docs.length?'Berikut kutipan manual yang cocok.':'Belum ada kutipan manual untuk menjawab pertanyaan ini.';
   return result;
@@ -177,7 +193,7 @@ async function handle(request,env){
  if(!isFile&&(request.method!=='POST'||request.headers.get('Origin')!==url.origin))fail('Permintaan asal tidak diizinkan.',403);
  if(isFile&&request.method!=='GET')fail('Metode tidak tersedia.',405);
  if(!isFile&&a!=='upload'&&request.headers.get('content-type')?.split(';')[0]!=='application/json')fail('Gunakan JSON.',415);
- const d=(isFile||a==='upload')?{}:await readBody(request,a==='ask'?1800000:350000);
+ const d=(isFile||a==='upload')?{}:await readBody(request,a==='ask'?1800000:a==='module_save'?1200000:350000);
  if(a==='login'){
   const id=employee(d.employee);
   geofence(env,d.geo);
@@ -214,7 +230,8 @@ async function handle(request,env){
   }
   return json(await run(a,input));
  }
- if(a==='notices')return json(await run(a));
+ if(['notices','notice_manage','chat_list'].includes(a))return json(await run(a));
+ if(a==='chat_read')return json(await run(a,{thread:uuid(d.thread)}));
  if(a==='leaderboard')return json(await run(a,{sort:['visits','points'].includes(d.sort)?d.sort:'seconds'}));
  if(a==='supervisors'){
   if(!reviewerAreas.includes(d.workArea))fail('Pilih area persetujuan.');
@@ -222,7 +239,11 @@ async function handle(request,env){
  }
  if(a==='people')return json(await run(a,d.after?{after:employee(d.after)}:{}));
  if(a==='modules')return json(await run(a,{category:str(d.category,40),...(d.after?{after:str(d.after,140),after_id:uuid(d.after_id)}:{})}));
- if(a==='notice_save')return json(await run(a,{id:uuid(d.id),title:str(d.title,120,'judul',true),body:str(d.body,4000,'pengumuman',true),active:d.active===true}));
+ if(a==='notice_save'){
+  if([d.starts,d.ends].some(v=>v&&!dateOK(v))||(d.starts&&d.ends&&d.ends<d.starts))fail('Periksa periode pengumuman.');
+  if(d.target_role&&!allRoles.includes(d.target_role))fail('Role tujuan tidak valid.');
+  return json(await run(a,{starts:d.starts,ends:d.ends,target_role:d.target_role,target_area:str(d.target_area,80),id:uuid(d.id),title:str(d.title,120,'judul',true),body:str(d.body,4000,'pengumuman',true),active:d.active===true}));
+ }
  if(a==='module_save')return json(await run(a,moduleData(d)));
  if(['module','heartbeat','visit','finish','quiz'].includes(a)){
   const x={id:uuid(d.id),edit:d.edit===true};if(['quiz','finish'].includes(a)&&d.edition)x.edition=uuid(d.edition);if(a==='quiz'){if(!Array.isArray(d.answers)||d.answers.length>20||d.answers.some(v=>!Number.isInteger(v)||v<0||v>4))fail('Jawab seluruh pertanyaan.');x.answers=d.answers;}
@@ -237,13 +258,22 @@ async function handle(request,env){
   const id=uuid(url.searchParams.get('module'));const ext=url.searchParams.get('ext');const mime={pdf:'application/pdf',mp4:'video/mp4',png:'image/png',jpg:'image/jpeg'}[ext];
   if(!mime)fail('Jenis lampiran tidak didukung.');const bytes=await readBody(request,12*1024*1024,true);if(!validBinary(bytes,ext))fail('Isi berkas tidak sesuai jenisnya.');
   const k=id+'/'+crypto.randomUUID()+'.'+ext;const r=await supa(env,'/storage/v1/object/satu-private/'+k,{method:'POST',headers:{'Content-Type':mime},body:bytes});
-  if(!r.ok)fail('Gagal mengunggah lampiran. Periksa bucket private dan kuota.',503);return json({attachment:k});
+  if(!r.ok)fail('Gagal mengunggah lampiran. Periksa bucket private dan kuota.',503);let extracted='',notice='';
+  if(ext!=='mp4'&&env.AI?.toMarkdown){
+   try{
+    const [doc]=await env.AI.toMarkdown([{name:'materi.'+ext,blob:new Blob([bytes],{type:mime})}]);
+    if(doc?.format==='markdown'&&typeof doc.data==='string')extracted=doc.data.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').slice(0,180000);
+    if(doc?.data?.length>180000)notice='Indeks AI mencakup 180.000 karakter pertama.';
+   }catch{}
+  }
+  if(!extracted)notice='Isi file belum terindeks. Catatan dokumen digunakan sebagai rujukan AI.';
+  return json({attachment:k,extracted,notice});
  }
  if(isFile){
   const mod=await run('module',{id:uuid(url.searchParams.get('id'))});const k=storageKey(mod.attachment,mod.id);if(!k)fail('Tidak ada lampiran.',404);
   const r=await supa(env,'/storage/v1/object/authenticated/satu-private/'+k);
   if(!r.ok)fail('Lampiran tidak ditemukan.',404);const ext=k.split('.').pop();
-  return new Response(r.body,{headers:{...headers,'Content-Type':r.headers.get('content-type')||'application/octet-stream','Content-Disposition':'attachment; filename="materi.'+ext+'"'}});
+  return new Response(r.body,{headers:{...headers,'Content-Type':r.headers.get('content-type')||'application/octet-stream','X-Frame-Options':'SAMEORIGIN','Content-Security-Policy':"default-src 'none'; frame-ancestors 'self'",'Content-Disposition':(url.searchParams.has('preview')?'inline':'attachment')+'; filename="materi.'+ext+'"'}});
  }
  if(a==='account'){
   const person=await run('me');if(person.role!=='admin')throw new Problem(...errors.DENIED);
@@ -284,7 +314,12 @@ async function handle(request,env){
   if(a==='password'){await run('logout_all');return json({ok:true},200,{'Set-Cookie':cookie('',0)});}
   if(id!==person.id)await run('revoke_user',{id});return json({ok:true});
  }
- if(a==='ask')return json(await askManual(env,run,d));
+ if(a==='ask'){
+  const thread=d.thread?uuid(d.thread):null;
+  const answer=await askManual(env,run,d);
+  if(thread)await run('chat_save',{thread,q:str(d.q,800),answer});
+  return json(answer);
+ }
  fail('Layanan tidak ditemukan.',404);
 }
 async function authChange(env,id,password){

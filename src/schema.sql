@@ -273,3 +273,20 @@ begin
  return result;
 end$$;
 
+
+alter table satu.modules add column if not exists doc_no text not null default '';
+alter table satu.modules add column if not exists doc_area text not null default 'General';
+alter table satu.notices add column if not exists starts date;
+alter table satu.notices add column if not exists ends date;
+alter table satu.notices add column if not exists target_role text;
+alter table satu.notices add column if not exists target_area text;
+create table if not exists satu.chat_turns(
+ person uuid not null references satu.people, thread uuid not null, id uuid primary key default gen_random_uuid(),
+ created_at timestamptz not null default now(), question text not null, answer jsonb not null
+);
+create index if not exists chat_turns_owner on satu.chat_turns(person,thread,created_at);
+alter table satu.chat_turns enable row level security;
+revoke all on satu.chat_turns from public,anon,authenticated;
+
+alter table satu.modules add column if not exists extracted text not null default '';
+create index if not exists module_extracted_search on satu.modules using gin(to_tsvector('simple',extracted));

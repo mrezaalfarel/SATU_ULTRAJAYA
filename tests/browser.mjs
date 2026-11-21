@@ -172,7 +172,7 @@ try{
  await click('#add');
  await fill('[name=title]', 'Manual pelatihan uji');
  await fill('[name=body]', 'Kartu sintetis berisi panduan pemeriksaan kemasan untuk uji aplikasi.');
- await click('[name=manual]');
+ await fill('[name=doc_no]','SOP-UJI-01');
  await click('.addq');
  await fill('.qt','Apa nama objek latihan?');
  await fill('.qo','Kartu\nBuku');
@@ -180,6 +180,7 @@ try{
  await wait("document.querySelector('#main .book')?.innerText.includes('Manual pelatihan uji')");
  await openLogin('op-uji');
  assert.equal(await ev("document.querySelector('[data-go=management]')"),null);
+ await click('.notice-bell summary');
  await wait("document.querySelector('.results')?.innerText.includes('Pemberitahuan Uji')");
  await goMenu('education');
  await click('#main [data-open]');

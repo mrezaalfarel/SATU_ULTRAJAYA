@@ -15,10 +15,15 @@ async function imageData(file){
 export async function ask(host){
  const session=await api('me');
  if(!host.isConnected)return;
+ const memory=app.chatMemory;
+ const thread=memory.thread&&Date.now()-memory.left<=15000?memory.thread:crypto.randomUUID();
+ memory.thread=thread;memory.left=0;
+ const conversations=await api('chat_list');
+ if(!host.isConnected)return;
  host.classList.add('chat-page');
  host.innerHTML=heading('AI Corner','','Asisten produksi','<button class="outline" type="button" id="clearChat">Percakapan baru</button>')+
-  '<div class="chat-sheet"><div class="chat-welcome"><span aria-hidden="true">✧</span><h2>Apa yang ingin Anda periksa?</h2></div><div id="conversation" role="log" aria-live="polite"></div>'+
-  '<form class="composer">'+(session.vision?'<label class="source-select">Sumber jawaban<select name="mode"><option value="manual">Manual dan SOP pabrik</option><option value="general">Pengetahuan umum produksi</option></select></label>':'<p class="hint">Pencarian kutipan dari manual terbit.</p>')+
+  '<div class="chat-layout"><section class="chat-history panel"><h2>Riwayat</h2><div id="threadList"></div></section><div class="chat-sheet"><div class="chat-welcome"><span aria-hidden="true">✧</span><h2>Apa yang ingin Anda periksa?</h2></div><div id="conversation" role="log" aria-live="polite"></div>'+
+  '<form class="composer">'+
   '<textarea name="q" rows="2" maxlength="800" aria-label="Pertanyaan" placeholder="Tulis pertanyaan atau diktekan pesan…" required></textarea>'+
   (session.vision?`<div class="attachment-tools" id="attachMenu" hidden>
    <button type="button" class="outline" id="pickDoc">Dokumen TXT, MD, CSV</button><input type="file" name="document" accept=".txt,.md,.csv" hidden>
@@ -30,7 +35,7 @@ export async function ask(host){
    <button type="button" class="text-btn" id="removeDoc" hidden></button>
    <label class="inlinecheck" hidden id="repeatPhoto"><input type="checkbox" id="useLastPhoto"> Sertakan lagi foto terakhir</label>`:'')+
   '<div class="compose-actions">'+(session.vision?'<button class="tool-btn" id="attachToggle" type="button" aria-label="Tambah lampiran" aria-controls="attachMenu" aria-expanded="false">＋</button>':'')+
-  '<button type="button" class="tool-btn" id="mic" aria-label="Dikte bahasa Indonesia" aria-pressed="false" title="Dikte bahasa Indonesia">🎙</button><span id="voiceStatus" role="status"></span><button class="primary" name="send">Kirim ↑</button></div></form></div>';
+  '<button type="button" class="tool-btn" id="mic" aria-label="Dikte bahasa Indonesia" aria-pressed="false" title="Dikte bahasa Indonesia">🎙</button><span id="voiceStatus" role="status"></span><button class="primary" name="send">Kirim ↑</button></div></form></div></div>';
  const select=s=>host.querySelector(s);
  const form=select('form'),log=select('#conversation'),video=select('#cameraPreview'),preview=select('#capturePreview');
  let stream=null,frame=null,previewURL='',lastImage=null,generation=0,closed=false;
@@ -38,6 +43,39 @@ export async function ask(host){
  let speech=null;
  const mic=select('#mic'),voiceStatus=select('#voiceStatus');
  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+ let current=thread,readVersion=0;
+ function renderTurn(q,answer,filename){
+   const turn=document.createElement('article');turn.className='chat-turn stack';
+   turn.innerHTML='<div class="chat-user">'+esc(q)+(filename?'<small>'+esc(filename)+'</small>':'')+'</div>'+
+    (answer.assessment?'<strong>'+esc(labels[answer.assessment]||labels.uncertain)+'</strong>':'')+
+    (answer.reply?'<p class="note">'+esc(answer.reply)+'</p>':'')+
+    (answer.notice?'<p class="hint">'+esc(answer.notice)+'</p>':'')+
+    (answer.assessment?'<p class="hint">Konfirmasikan temuan ke QC atau penanggung jawab mesin.</p>':'')+
+    answer.docs.map((doc,i)=>'<details><summary>['+(i+1)+'] '+esc(doc.title)+' · Rev '+esc(doc.revision)+'</summary><p class="note">'+esc(doc.excerpt)+'</p><button class="text-btn" data-doc="'+esc(doc.id)+'">Buka modul</button></details>').join('');
+   for(const button of turn.querySelectorAll('[data-doc]'))button.onclick=()=>go('education',{id:button.dataset.doc});
+   log.append(turn);
+   const summary=answer.reply||answer.docs.map(source=>source.title+' — '+source.excerpt).join('\n')||answer.notice;
+   history=[...history,{question:q,answer:String(summary||'').slice(0,2400)}].slice(-4);
+   return turn;
+ }
+ function drawThreads(){
+  const target=select('#threadList');
+  target.replaceChildren();
+  for(const entry of conversations){
+   const button=document.createElement('button');button.type='button';button.textContent=entry.title;
+   button.onclick=busy(button,async()=>{
+    const version=++readVersion;
+    const rows=await api('chat_read',{thread:entry.thread});
+    if(closed||version!==readVersion)return;
+    select('#clearChat').click();
+    for(const row of rows)renderTurn(row.question,row.answer);
+    // A reply from history starts a fresh conversation with the displayed context.
+   });
+   target.append(button);
+  }
+  if(!conversations.length)target.textContent='Belum ada percakapan.';
+ }
+ drawThreads();
  function stopVoice(){if(speech){speech.abort();speech=null;}mic.setAttribute('aria-pressed','false');}
  mic.onclick=()=>{
   if(!Speech){voiceStatus.textContent='Dikte belum tersedia di browser ini.';return;}
@@ -97,7 +135,7 @@ export async function ask(host){
  document.addEventListener('visibilitychange',onVisibility);
  window.addEventListener('pagehide',stopCamera);
  app.cleanup=()=>{
-  closed=true;stopVoice();stopCamera();clearPhoto();history=[];lastImage=null;
+  closed=true;memory.left=Date.now();stopVoice();stopCamera();clearPhoto();history=[];lastImage=null;
   window.removeEventListener('pagehide',stopCamera);document.removeEventListener('visibilitychange',onVisibility);
  };
  if(video){
@@ -138,14 +176,15 @@ export async function ask(host){
    if(e.target.checked){clearPhoto();e.target.checked=true;stopCamera();}
   };
  }
- select('#clearChat').onclick=()=>{stopVoice();voiceStatus.textContent='';stopCamera();resetDocument();clearPhoto();history=[];lastImage=null;form.reset();log.replaceChildren();if(video)select('#repeatPhoto').hidden=true;form.elements.q.focus();};
+ select('#clearChat').onclick=()=>{current=crypto.randomUUID();memory.thread=current;stopVoice();voiceStatus.textContent='';stopCamera();resetDocument();clearPhoto();history=[];lastImage=null;form.reset();log.replaceChildren();if(video)select('#repeatPhoto').hidden=true;form.elements.q.focus();};
  const send=form.elements.send;
  form.onsubmit=busy(send,async()=>{
   stopVoice();
   const q=form.elements.q.value.trim();if(!q)throw Error('Isi pertanyaan terlebih dahulu.');
   const photo=frame||form.elements.photo?.files[0];
+  readVersion++;
   const clearButton=select('#clearChat');clearButton.disabled=true;
-  const controls=Array.from(form.elements).filter(el=>el!==send&&el!==clearButton);
+  const controls=[...form.elements,...select('#threadList').querySelectorAll('button')].filter(el=>el!==send&&el!==clearButton);
   try{
    controls.forEach(el=>el.disabled=true);
    const image=photo?await imageData(photo):select('#useLastPhoto')?.checked?lastImage:undefined;
@@ -155,23 +194,20 @@ export async function ask(host){
    const documentText=file?await file.text():'';
    if(file&&(!documentText.trim()||documentText.length>12000||documentText.includes('\u0000')))throw Error('Pilih dokumen teks berisi maksimal 12.000 karakter.');
    if(closed)return;
-   const mode=image?'manual':file?'general':form.elements.mode?.value||'manual';
-   const context=history.filter(turn=>turn.mode===mode).map(({question,answer})=>({question,answer}));
-   const answer=await api('ask',{q,image,document:documentText,history:context,mode});
+   const mode='auto';
+   const context=history.map(({question,answer})=>({question,answer}));
+   const answer=await api('ask',{q,image,document:documentText,history:context,mode,thread:current});
    if(closed)return;
-   const turn=document.createElement('article');turn.className='chat-turn stack';
-   turn.innerHTML='<div class="chat-user">'+esc(q)+(file?'<small>'+esc(file.name)+'</small>':'')+'</div>'+
-    (answer.assessment?'<strong>'+esc(labels[answer.assessment]||labels.uncertain)+'</strong>':'')+
-    (answer.reply?'<p class="note">'+esc(answer.reply)+'</p>':'')+
-    (answer.notice?'<p class="hint">'+esc(answer.notice)+'</p>':'')+
-    (answer.assessment?'<p class="hint">Konfirmasikan temuan ke QC atau penanggung jawab mesin.</p>':'')+
-    answer.docs.map((doc,i)=>'<details><summary>['+(i+1)+'] '+esc(doc.title)+' · Rev '+esc(doc.revision)+'</summary><p class="note">'+esc(doc.excerpt)+'</p><button class="text-btn" data-doc="'+esc(doc.id)+'">Buka modul</button></details>').join('');
-   for(const button of turn.querySelectorAll('[data-doc]'))button.onclick=()=>go('education',{id:button.dataset.doc});
-   log.append(turn);
-   const summary=answer.reply||answer.docs.map(source=>source.title+' — '+source.excerpt).join('\n')||answer.notice;
-   history=[...history,{question:q,mode,answer:String(summary||'').slice(0,2400)}].slice(-4);
+   const turn=renderTurn(q,answer,file?.name);
+   if(!conversations.some(t=>t.thread===current))conversations.unshift({thread:current,title:q});
+   drawThreads();
    if(image){lastImage=image;select('#repeatPhoto').hidden=false;}
    form.elements.q.value='';clearPhoto();resetDocument();turn.scrollIntoView({block:'nearest'});
   }finally{controls.forEach(el=>el.disabled=false);clearButton.disabled=false;}
  });
+ if(conversations.some(row=>row.thread===thread)){
+  const prior=await api('chat_read',{thread});
+  if(!closed&&current===thread&&!log.children.length)for(const row of prior)renderTurn(row.question,row.answer);
+ }
+
 }
