@@ -232,7 +232,7 @@ try{
  await fill('[data-meta=unit]','FM-BROWSER');
  await click('#save');
  await wait("document.querySelector('.modebar')?.innerText.includes('Versi 1')");
- await click('[data-group=hour] summary');
+ await click('[data-part=hour]');
  await wait("document.querySelector('.volume-matrix')?.innerText.includes('×')");
  await click('[data-area="Filling Machine"]');
  await click('[data-new=FILL_EVENT]');

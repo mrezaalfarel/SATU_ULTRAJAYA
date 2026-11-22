@@ -10,8 +10,10 @@ function picker(host,args){
   if(!Object.keys(areas).length)host.insertAdjacentHTML('beforeend','<p class="empty">Hubungi admin untuk mendapatkan penugasan area dan line.</p>');
   onBtn(host,'[data-section]',b=>go('reports',{area:b.dataset.section}));return;
  }
+ const filling=args.area==='Filling Machine';
+ const fillingNames={FILL_PRODUCTION:['▤','Laporan Filling'],FILL_EVENT:['◷','Laporan Event'],FILL_PACK:['◇','Pack Integrity'],FILL_VOLUME:['▥','Volume Control'],FILL_CIP:['◈','Internal CIP Filling']};
  host.innerHTML=heading(args.area,app.line,'Laporan produksi','<button class="outline" id="allAreas">Semua area</button>')+
-  '<div class="portal-grid">'+forms.map(d=>`<button class="portal-card" ${d.id==='downtime'?'data-summary':approvalOnly()?'data-browse':'data-new'}="${esc(d.id)}"><small>${esc(d.formNo||'Rekap shift')}</small><strong>${esc(d.title)}</strong><span>${d.id==='downtime'?'Lihat rekap':approvalOnly()?'Tinjau laporan':'Buka formulir'} →</span></button>`).join('')+'</div>';
+  '<div class="portal-grid '+(filling?'filling-grid':'')+'">'+forms.map(d=>`<button class="portal-card" ${d.id==='downtime'?'data-summary':approvalOnly()?'data-browse':'data-new'}="${esc(d.id)}">${filling?'<i aria-hidden="true">'+fillingNames[d.id][0]+'</i>':''}<small>${esc(d.formNo||'Rekap shift')}</small><strong>${esc(filling?fillingNames[d.id][1]:d.title)}</strong><span>${d.id==='downtime'?'Lihat rekap':approvalOnly()?'Tinjau laporan':'Buka formulir'} →</span></button>`).join('')+'</div>';
  onBtn(host,'#allAreas',()=>go('reports'));
  onBtn(host,'[data-summary]',()=>go('downtime'));
  onBtn(host,'[data-new]',b=>go('edit',{type:b.dataset.new,area:args.area}));
@@ -103,15 +105,36 @@ async function edit(host,args){
  app.isDirty=()=>dirty||inFlight;
  app.captureDraft=()=>dirty?{type:def.id,id:r?.id,recovery:{id:record.id,doc:structuredClone(doc),cook:record.cook,op,version,note:correction}}:null;
  if(resumed){releaseTemporaryDraft();toast(version===record.version?'Isian sebelum sesi berakhir dipulihkan. Periksa lalu simpan draf.':'Isian dipulihkan. Versi server telah berubah. Periksa laporan terbaru sebelum menyimpan.',true);}
- let selectedJaw=1;
+ let selectedJaw=1,activeSection=def.sections[0].id;
  const getSlot=g=>slots[g.id]||=(g.kind==='hourly'?(doc.sections[g.id]?.[server.hour]||!r?server.hour:Object.keys(doc.sections[g.id]||{})[0]||server.hour):'1');
  function redraw(){
+  const tabLabels={CIP_SUMMARY:'CIP Ringkas',MACHINE_CHECK:'Cek Persiapan',maintenance:'Perawatan',hour:'Periksa Tiap Jam',paper:'Paper',strip:'Strip',foreman:'Kontrol SPV'};
   const md=def.meta.map(f=>entry(f,doc.meta[f.key],`data-meta="${f.key}"`,!editable||(!!r&&(['date','unit','shift'].includes(f.key)||(['STERILIZER_GEA','ASEPTIC_GEA','ASEPTIC_CIP'].includes(def.id)&&['stlz','at','operator','supervisor'].includes(f.key)))))).join('');
   host.innerHTML=heading(def.title,def.formNo+(def.rev?' · Rev '+def.rev:'')+' · '+app.line,'Report Production','<button class="outline" id="back">Ke daftar laporan</button>')+
   `<div class="modebar spread">${tag(record.status)}<small>${record.version?'Versi '+record.version:'Laporan baru'} · Waktu server ${esc(server.hm)} WIB</small></div>${record.review_note?'<p class="message">Catatan pengawas · '+esc(record.review_note)+'</p>':''}<details class="group" data-group="meta" ${opened.has('meta')?'open':''}><summary>Identitas laporan</summary><div class="inner fields">${md}${def.id==='PROCESS_MILK'?'<label>Masakan<select id="cook" '+(r||!editable?'disabled':'')+'>'+[1,2,3,4].map(x=>opt(x,'Masakan '+x,record.cook)).join('')+'</select></label>':''}</div></details>`+
+  (fill?'<nav class="filling-tabs" aria-label="Bagian laporan">'+def.sections.map(g=>'<button type="button" data-part="'+esc(g.id)+'">'+esc((def.id==='FILL_PRODUCTION'&&tabLabels[g.id])||g.title)+'</button>').join('')+'</nav><div class="actions"><button class="outline" id="livePreview">Pratinjau isian</button><button class="outline" id="reportHistory">Riwayat laporan</button></div>':'')+
   def.sections.map(g=>`<details class="group" data-group="${g.id}" ${opened.has(g.id)?'open':''}><summary>${esc(g.title)} <small>· ${Object.keys(doc.sections[g.id]||{}).length} isian</small></summary><div class="inner"></div></details>`).join('')+
   (r?`<details class="group"><summary>Riwayat perubahan</summary><div class="inner">${(r.history||[]).map(h=>'<p><strong>v'+h.version+' · '+esc(historyLabels[h.action]||h.action)+'</strong> · '+esc(h.name)+' · '+esc(new Date(h.at).toLocaleString(locale(),{timeZone:'Asia/Jakarta'}))+' WIB '+esc(h.note)+'</p>').join('')}</div></details>`:'')+
   `<div class="formfooter"><div class="actions"><span class="mr" id="saveState" role="status">${dirty?'Perubahan belum disimpan':record.version?'Data tersimpan':'Draf baru'}</span>${editable?'<button id="save" class="primary">Simpan draf</button>':''}${editable&&r?'<button class="outline" data-act="submit">Kirim untuk persetujuan</button>':''}${editable&&r&&(app.person.role==='admin'||r.owner_id===app.person.id)?'<button class="dangerbtn" data-act="archive">Arsipkan</button>':''}${r?.can_review?'<button class="primary" data-act="approve">Setujui</button><button class="outline" data-act="return">Kembalikan</button>':''}${r?'<button class="outline" id="print">Cetak / PDF</button>':''}</div></div>`;
+  if(fill){
+   const activate=(id)=>{
+    activeSection=id;
+    for(const button of host.querySelectorAll('[data-part]'))button.setAttribute('aria-pressed',String(button.dataset.part===id));
+    for(const part of host.querySelectorAll('[data-group]:not([data-group=meta])')){
+     part.hidden=part.dataset.group!==id;part.open=!part.hidden;
+    }
+   };
+   activate(activeSection);
+   onBtn(host,'[data-part]',button=>activate(button.dataset.part));
+   onBtn(host,'#reportHistory',()=>go('trace',{type:def.id}));
+   onBtn(host,'#livePreview',async()=>{
+    const {reportTables}=await import('/print.js');
+    if(!host.isConnected)return;
+    const dialog=document.createElement('dialog');dialog.className='appdialog filling-preview';
+    dialog.innerHTML='<form method="dialog"><div class="spread"><h2>'+esc(def.title)+'</h2><button class="outline">Tutup</button></div></form><p>'+esc(def.formNo)+' · '+esc(doc.meta.date)+' · Shift '+esc(doc.meta.shift)+' · '+esc(doc.meta.unit||'')+'</p>'+ (reportTables(doc,def)||'<p>Belum ada isian.</p>');
+    host.append(dialog);dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();
+   });
+  }
   onBtn(host,'#back',()=>go(r?'trace':'reports',{area:args.area}));onBtn(host,'#save',save);onBtn(host,'[data-act]',b=>action(b.dataset.act));onBtn(host,'#print',async()=>{if(dirty)throw Error('Simpan draf sebelum mencetak.');await (await import('/print.js')).printReport(record,def);});
   host.querySelectorAll('[data-meta]').forEach(el=>el.oninput=()=>{doc.meta[el.dataset.meta]=el.value;mark();});for(const el of host.querySelectorAll('[data-meta="date"],[data-meta="shift"]'))el.onchange=()=>{doc.meta[el.dataset.meta]=el.value;mark();for(const box of host.querySelectorAll('details[data-group][open]')){const g=def.sections.find(s=>s.id===box.dataset.group);if(g?.kind==='hourly')fields(box,g);}};
   const cook=host.querySelector('#cook');if(cook)cook.onchange=()=>{record.cook=+cook.value;mark();};

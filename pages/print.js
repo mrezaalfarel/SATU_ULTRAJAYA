@@ -28,12 +28,16 @@ async function original(d,def){
 export async function printReport(r,def){
  const root=document.querySelector('#printRoot'),art=await original(r,def),meta=r.doc.meta;
  const head=`<h1>${esc(def.title)}</h1><p>${esc(def.formNo)} · ${esc(r.day)} · ${esc(r.line)} / ${esc(r.unit)} · Shift ${esc(r.shift)}${r.cook?' · Masakan '+r.cook:''} · ${esc(statusNames[r.status])} · v${r.version}</p>`;
- const body=def.sections.map(g=>{
-  const rows=ordered(r.doc.sections[g.id]);if(!rows.length)return '';
-  return '<h3>'+esc(g.title)+'</h3><table><thead><tr><th>Isian</th><th>Parameter</th><th>Nilai</th></tr></thead><tbody>'+rows.map(([n,row])=>g.fields.filter(f=>row[f.key]!=null&&row[f.key]!=='').map(f=>'<tr><td>'+esc(g.kind==='hourly'?'Jam '+String(Number(n)%24).padStart(2,'0'):n)+'</td><td>'+esc(f.label)+'</td><td>'+esc(row[f.key])+' '+esc(f.unit||'')+'</td></tr>').join('')).join('')+'</tbody></table>';}).join('');
+ const body=reportTables(r.doc,def);
  root.innerHTML=(art?'<section class="paper"><p class="print-meta">'+esc(r.line+' · '+r.day+' · Shift '+r.shift+' · '+statusNames[r.status]+' · v'+r.version)+'</p>'+art+'</section>':'')+head+
  '<p class="print-meta">ID '+esc(r.id)+' · Pencatat '+esc(r.author||'—')+' · Peninjau '+esc(r.reviewer||'—')+'</p><h2>Data tersimpan</h2><p>'+def.meta.filter(f=>meta[f.key]).map(f=>esc(f.label)+' · '+esc(meta[f.key])).join(' &nbsp; | &nbsp; ')+'</p>'+body;
  try{await Promise.all([...root.querySelectorAll('img')].map(img=>img.decode()));const clear=()=>root.replaceChildren();window.addEventListener('afterprint',clear,{once:true});window.print();}
  catch{root.replaceChildren();throw Error('Latar cetak belum termuat. Periksa sesi dan koneksi lalu coba lagi.');}
 }
 
+
+export function reportTables(doc,def){
+ return def.sections.map(g=>{
+  const rows=ordered(doc.sections[g.id]);if(!rows.length)return '';
+  return '<h3>'+esc(g.title)+'</h3><table><thead><tr><th>Isian</th><th>Parameter</th><th>Nilai</th></tr></thead><tbody>'+rows.map(([n,row])=>g.fields.filter(f=>row[f.key]!=null&&row[f.key]!=='').map(f=>'<tr><td>'+esc(g.kind==='hourly'?'Jam '+String(Number(n)%24).padStart(2,'0'):n)+'</td><td>'+esc(f.label)+'</td><td>'+esc(row[f.key])+' '+esc(f.unit||'')+'</td></tr>').join('')).join('')+'</tbody></table>';}).join('');
+}
