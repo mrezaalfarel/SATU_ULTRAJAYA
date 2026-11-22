@@ -1,3 +1,4 @@
+import {hours,hourLabel,volumeMatrix} from '/volume.js';
 import {exportFilteredReports} from '/export.js';
 import {availableSections,app,api,go,esc,fmt,dateLabel,offset,tag,titleOf,heading,onBtn,busy,toast,mayReview,approvalOnly,adminArea,statusNames,askDialog,locale,releaseTemporaryDraft} from '/app.js';
 const opt=(v,label,selected)=>'<option value="'+esc(v)+'" '+(String(v)===String(selected)?'selected':'')+'>'+esc(label)+'</option>';
@@ -88,6 +89,10 @@ async function edit(host,args){
  const def=app.catalog.find(x=>x.id===(r?.type||args.type));if(!def)throw Error('Formulir tidak ditemukan.');
  const fill=def.id.startsWith('FILL_'),calendarForm=fill||['ASEPTIC_GEA','STERILIZER_GEA'].includes(def.id);
  const record=r||{id:resumed?.id||crypto.randomUUID(),type:def.id,cook:def.id==='PROCESS_MILK'?1:0,version:0,status:'DRAFT',doc:{meta:{date:calendarForm?clock.calendar:clock.day,shift:fill?clock.fillShift:clock.shift,...Object.fromEntries(def.meta.filter(f=>['operator','operator_general'].includes(f.key)).map(f=>[f.key,app.person.name]))},sections:{}}};
+ if(fill&&!r&&!resumed){
+  const machine=app.line.match(/^(?:fm|filling(?: machine)?)[ _-]*0*(\d+)$/i);
+  if(machine)record.doc.meta.unit=machine[1];
+ }
  const mayWrite=!approvalOnly()&&(def.id!=='SUPERVISOR_DAILY'||adminArea());
  if(!r&&!mayWrite)throw Error('Akun ini dapat meninjau laporan yang dikirim untuk persetujuan.');
  const doc=structuredClone(resumed?.doc||record.doc);const editable=mayWrite&&['DRAFT','REVISION'].includes(record.status)&&(!r||r.owner_id===app.person.id||mayReview());
@@ -98,6 +103,7 @@ async function edit(host,args){
  app.isDirty=()=>dirty||inFlight;
  app.captureDraft=()=>dirty?{type:def.id,id:r?.id,recovery:{id:record.id,doc:structuredClone(doc),cook:record.cook,op,version,note:correction}}:null;
  if(resumed){releaseTemporaryDraft();toast(version===record.version?'Isian sebelum sesi berakhir dipulihkan. Periksa lalu simpan draf.':'Isian dipulihkan. Versi server telah berubah. Periksa laporan terbaru sebelum menyimpan.',true);}
+ let selectedJaw=1;
  const getSlot=g=>slots[g.id]||=(g.kind==='hourly'?(doc.sections[g.id]?.[server.hour]||!r?server.hour:Object.keys(doc.sections[g.id]||{})[0]||server.hour):'1');
  function redraw(){
   const md=def.meta.map(f=>entry(f,doc.meta[f.key],`data-meta="${f.key}"`,!editable||(!!r&&(['date','unit','shift'].includes(f.key)||(['STERILIZER_GEA','ASEPTIC_GEA','ASEPTIC_CIP'].includes(def.id)&&['stlz','at','operator','supervisor'].includes(f.key)))))).join('');
@@ -118,10 +124,25 @@ async function edit(host,args){
   const key=getSlot(g),rows=doc.sections[g.id]||{},row=rows[key]||{},dest=box.querySelector('.inner');
   const limit=g.kind==='hourly'?24:g.kind==='matrix'?g.count:Math.max(1,...Object.keys(rows).map(Number),Number(key));
   const isHourLocked=g.kind==='hourly'&&(key!==server.hour||!(fill?server.fillShifts:[server.shift]).includes(doc.meta.shift)||doc.meta.date!==(calendarForm?server.calendar:server.day));
-  const dailyLocked=g.dailyLock&&Boolean(r?.doc.sections[g.id]?.['1']);const allowCorrection=Boolean(r&&editable&&mayReview());const blocked=!editable||dailyLocked||(isHourLocked&&!allowCorrection)||(g.supervisor&&!mayReview());
+  const dailyLocked=g.dailyLock&&Boolean(r?.doc.sections[g.id]?.['1']);const allowCorrection=Boolean(r&&editable&&mayReview());const preheatLocked=g.id==='preheat'&&Number(key)>1&&!g.fields.every(f=>rows[Number(key)-1]?.[f.key]);const blocked=!editable||preheatLocked||dailyLocked||(isHourLocked&&!allowCorrection)||(g.supervisor&&!mayReview());
   const nameSlot=n=>g.kind==='hourly'?('Jam '+String(n%24).padStart(2,'0')+'.00'):g.kind==='matrix'?'Kolom '+n:'Isian '+n;
   dest.innerHTML=(g.kind!=='fields'?`<div class="row setbar"><label>${g.kind==='hourly'?'Jam pemeriksaan':'Posisi isian'}<select class="slot">${Array.from({length:limit},(_,i)=>opt(i+1,nameSlot(i+1)+(rows[i+1]?' · terisi':''),key)).join('')}</select></label>${g.kind==='repeater'&&editable&&(!g.supervisor||mayReview())?'<button class="outline add">+ Tambah isian</button>':''}${g.kind==='repeater'&&editable&&rows[key]&&(!g.supervisor||mayReview())?'<button class="text-btn remove">Hapus isian ini</button>':''}</div>`:'')+
-   (dailyLocked?'<p class="hint">Checklist harian telah dikunci.</p>':'')+(isHourLocked?(allowCorrection?'<label>Alasan koreksi pengawas (untuk riwayat perubahan)<textarea class="correction" maxlength="800" rows="2">'+esc(correction)+'</textarea></label>':'<p class="hint">Riwayat jam ini hanya dapat dibaca.</p>'):'')+'<div class="fields">'+g.fields.map(f=>entry(f,row[f.key],`data-key="${f.key}"`,blocked)).join('')+'</div>';
+   (preheatLocked?'<p class="hint">Lengkapi semua parameter sesi preheating sebelumnya untuk membuka sesi ini.</p>':'')+(dailyLocked?'<p class="hint">Checklist harian telah dikunci.</p>':'')+(isHourLocked?(allowCorrection?'<label>Alasan koreksi pengawas (untuk riwayat perubahan)<textarea class="correction" maxlength="800" rows="2">'+esc(correction)+'</textarea></label>':'<p class="hint">Riwayat jam ini hanya dapat dibaca.</p>'):'')+'<div class="fields">'+g.fields.map(f=>entry(f,row[f.key],`data-key="${f.key}"`,blocked)).join('')+'</div>';
+  if(fill&&g.kind==='hourly'){
+   const picker=dest.querySelector('.slot');
+   picker.innerHTML=hours.map(hour=>opt(hour,hourLabel(hour)+(rows[hour]?' · terisi':''),key)).join('');
+   const jump=document.createElement('button');jump.type='button';jump.className='outline';
+   jump.textContent='Ke jam server · '+hourLabel(server.hour);
+   jump.onclick=()=>{slots[g.id]=server.hour;fields(box,g);};picker.closest('.setbar').append(jump);
+  }
+  function drawVolume(){
+   dest.querySelector('.volume-matrix').innerHTML=volumeMatrix(doc.sections[g.id]||{},r?.doc.sections[g.id]||{},selectedJaw,key);
+  }
+  if(def.id==='FILL_VOLUME'){
+   dest.insertAdjacentHTML('beforeend','<section class="volume-review"><h3>Pratinjau Volume Control</h3><label>Jaw / Track<select class="matrix-jaw">'+Array.from({length:10},(_,i)=>opt(i+1,'Jaw '+(i+1),selectedJaw)).join('')+'</select></label><p>Positif = Jaw · 0 = tengah · Negatif = Track. × tersimpan, ○ belum disimpan.</p><div class="volume-matrix tablewrap" tabindex="0" role="region" aria-label="Matriks posisi per jam"></div></section>');
+   dest.querySelector('.matrix-jaw').onchange=e=>{selectedJaw=Number(e.target.value);drawVolume();};
+   drawVolume();
+  }
   const reason=dest.querySelector('.correction');if(reason)reason.oninput=()=>{correction=reason.value;mark();};
   const sel=dest.querySelector('.slot');if(sel)sel.onchange=()=>{slots[g.id]=sel.value;fields(box,g);};
   onBtn(dest,'.add',()=>{if(limit>=60)throw Error('Maksimal 60 isian per bagian.');slots[g.id]=String(limit+1);fields(box,g);});
@@ -129,7 +150,11 @@ async function edit(host,args){
   dest.querySelectorAll('[data-key]').forEach(el=>el.oninput=()=>{const rs=doc.sections[g.id]??={};const target=rs[key]??={};
    if(el.value!=='')target[el.dataset.key]=el.value;else delete target[el.dataset.key];
    const result=g.fields.find(f=>f.computed);if(result){const delta=def.id==='FILL_CIP'?times(target.Start,target.Stop):times(target.Stop,target.Start);const comp=dest.querySelector('[data-key="'+result.key+'"]');comp.value=delta;if(delta)target[result.key]=delta;else delete target[result.key];}
-   if(!Object.keys(target).length)delete rs[key];mark();
+   if(!Object.keys(target).length)delete rs[key];
+   if(def.id==='FILL_VOLUME'){
+    selectedJaw=Number(el.dataset.key.slice(4));dest.querySelector('.matrix-jaw').value=String(selectedJaw);drawVolume();
+   }
+   mark();
   });
  }
  async function save(){if(inFlight)return;inFlight=true;host.inert=true;try{op||=crypto.randomUUID();const x=await api('save',{id:record.id,type:def.id,version,cook:record.cook,op,doc,note:correction});

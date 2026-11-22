@@ -97,3 +97,5 @@ button.portal-card:hover {border-color:var(--accent)}
 .portal-loader{display:flex;align-items:center;gap:12px}.portal-loader:before{content:'';width:18px;height:18px;border:2px solid var(--stroke);border-top-color:var(--accent);border-radius:50%;animation:portal-spin 1s linear infinite}@keyframes portal-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.portal-loader:before{animation:none}}
 @media(max-width:720px){.chat-layout,.manage-widgets{grid-template-columns:1fr}#threadList{max-height:115px}}
+
+.volume-review{margin-top:1.5rem}.volume-review label{max-width:12rem}.volume-matrix{max-width:100%;overflow:auto}.volume-matrix caption{text-align:left;padding:.65rem;font-weight:700}.volume-matrix td,.volume-matrix th{text-align:center;min-width:3.6rem}.volume-matrix th:first-child{position:sticky;left:0;background:var(--surface)}.volume-matrix .selected-hour{background:var(--soft);font-weight:700}
