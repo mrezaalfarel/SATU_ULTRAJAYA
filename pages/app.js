@@ -149,7 +149,7 @@ async function dashboard(host){
  const action=canWrite?'<button class="primary" id="newRpt">+ Buat laporan</button>':approvalOnly()&&app.catalog.length?'<button class="primary" id="reviewQueue">Tinjau laporan</button>':'';
  host.innerHTML=heading('Dashboard produksi','Perolehan dan kejadian dari laporan yang telah disetujui.','Ringkasan line',action)+
  `<form class="toolbar"><label>Dari tanggal<input name="from" type="date" value="${offset(end,-6)}" required></label><label>Sampai tanggal<input name="to" type="date" value="${end}" required></label><button class="outline">Tampilkan</button></form><div class="results"></div>`;
- onBtn(host,'#newRpt',()=>go('reports'));const form=host.querySelector('form'),results=host.querySelector('.results');let pending=false,queued=false,live=false;let filters=Object.fromEntries(new FormData(form));
+ onBtn(host,'#newRpt',()=>{const areas=Object.keys(availableSections());go('reports',areas.length===1?{area:areas[0]}:{});});const form=host.querySelector('form'),results=host.querySelector('.results');let pending=false,queued=false,live=false;let filters=Object.fromEntries(new FormData(form));
  onBtn(host,'#reviewQueue',()=>go('trace',{...filters,status:'PENDING'}));
  async function update(){
   if(!host.isConnected)return;
